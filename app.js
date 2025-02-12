@@ -10,24 +10,44 @@ function addExpense() {
         return;
     }
 
-    // Add a unique ID to the expense
     let expense = { id: Date.now(), description, amount, category };
-
     let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
     savedExpenses.push(expense);
     localStorage.setItem("expenses", JSON.stringify(savedExpenses));
 
-    addExpenseToDOM(expense); // Pass the entire expense object
+    console.log("Expenses after adding:", JSON.parse(localStorage.getItem("expenses")));
+
+    addExpenseToDOM(expense);
+    updateTotalExpenses();
+    updateRemainingBudget();
     updateProgressBar();
+}
+
+function removeExpenseFromStorage(id) {
+    let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+    let filteredExpenses = savedExpenses.filter(expense => expense.id !== id);
+    localStorage.setItem("expenses", JSON.stringify(filteredExpenses));
+
+    console.log("Expenses after removing:", JSON.parse(localStorage.getItem("expenses")));
+
     updateTotalExpenses();
 }
 
 document.addEventListener("DOMContentLoaded", loadExpenses);
 
 function loadExpenses() {
+    // Clear existing expenses from the DOM
+    const categories = ["Food", "Rent", "Entertainment", "Transport", "Other"];
+    categories.forEach(category => {
+        document.getElementById(`expenses${category}`).innerHTML = "";
+    });
+
+    // Load expenses from localStorage
     let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    savedExpenses.forEach(expense => addExpenseToDOM(expense)); // Pass the entire expense object
+    savedExpenses.forEach(expense => addExpenseToDOM(expense));
     updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar(); // Ensure the progress bar is updated after loading expenses
 }
 
 function addExpenseToDOM(expense) {
@@ -38,8 +58,8 @@ function addExpenseToDOM(expense) {
     let deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Eliminar";
     deleteBtn.onclick = function () {
-        expensesList.removeChild(listItem); // Remove from DOM
-        removeExpenseFromStorage(expense.id); // Remove from localStorage using the unique ID
+        expensesList.removeChild(listItem);
+        removeExpenseFromStorage(expense.id);
         updateTotalExpenses();
         updateRemainingBudget();
         updateProgressBar();
@@ -51,7 +71,7 @@ function addExpenseToDOM(expense) {
 
 function removeExpenseFromStorage(id) {
     let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    let filteredExpenses = savedExpenses.filter(expense => expense.id !== id); // Filter by ID
+    let filteredExpenses = savedExpenses.filter(expense => expense.id !== id);
     localStorage.setItem("expenses", JSON.stringify(filteredExpenses));
     updateTotalExpenses();
 }
@@ -69,6 +89,7 @@ function setSavingsGoal() {
         return;
     }
     localStorage.setItem("savingsGoal", goal);
+    localStorage.setItem("lastResetDate", new Date().toISOString()); // Update the last reset date
     document.getElementById("savingsGoal").textContent = `$${goal}`;
     checkGoal();
 }
@@ -83,49 +104,57 @@ function checkGoal() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    let savedGoal = localStorage.getItem("savingsGoal");
-    if (savedGoal) {
-        document.getElementById("savingsGoal").textContent = `$${savedGoal}`;
+    checkAndResetMonthlyData(); // Check and reset monthly data if necessary
+
+    // Load the monthly budget from localStorage
+    let savedBudget = parseFloat(localStorage.getItem("monthlyBudget")) || 0;
+    if (savedBudget > 0) {
+        document.getElementById("monthlyBudgetInput").value = savedBudget;
     }
+
+    // Load the savings goal from localStorage
+    let savedGoal = parseFloat(localStorage.getItem("savingsGoal")) || 0;
+    if (savedGoal > 0) {
+        document.getElementById("savingsGoalInput").value = savedGoal;
+        document.getElementById("savingsGoal").textContent = `$${savedGoal.toFixed(2)}`;
+    }
+
+    // Load expenses and goals
+    loadExpenses();
+    goals.forEach(goal => addGoalToDOM(goal));
+
+    // Update the UI with the correct values
+    updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar();
 });
 
 function updateProgressBar() {
-    let budget = parseFloat(localStorage.getItem("monthlyBudget")) || 0; // Get the monthly budget
-    let total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0; // Get total expenses
-    let savingsGoal = parseFloat(localStorage.getItem("savingsGoal")) || 0; // Get the savings goal
+    let budget = parseFloat(localStorage.getItem("monthlyBudget")) || 0;
+    let total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+    let savingsGoal = parseFloat(localStorage.getItem("savingsGoal")) || 0;
 
     if (budget <= 0 || savingsGoal <= 0) {
-        // If no budget or savings goal is set, set progress to 0%
         document.getElementById("progress").style.width = "0%";
-        document.getElementById("progress").style.background = "red"; // Default to red
+        document.getElementById("progress").style.background = "red";
         return;
     }
 
-    // Calculate the unused portion of the budget
     let unusedBudget = budget - total;
-
-    // Calculate the progress based on how much of the unused budget contributes to the savings goal
     let progress = (unusedBudget / savingsGoal) * 100;
-
-    // Cap the progress at 100% if the unused budget exceeds the savings goal
     if (progress > 100) progress = 100;
 
-    // Update the progress bar width
     document.getElementById("progress").style.width = `${progress}%`;
 
-    // Dynamically calculate the gradient based on the progress percentage
     let red = 255;
     let green = 0;
     if (progress <= 50) {
-        // Transition from red to yellow (0% to 50%)
         green = Math.floor((progress / 50) * 255);
     } else {
-        // Transition from yellow to green (50% to 100%)
         red = Math.floor(((100 - progress) / 50) * 255);
         green = 255;
     }
 
-    // Set the background color using the calculated RGB values
     document.getElementById("progress").style.background = `rgb(${red}, ${green}, 0)`;
 }
 
@@ -139,9 +168,10 @@ function setMonthlyBudget() {
         return;
     }
     localStorage.setItem("monthlyBudget", budget);
+    localStorage.setItem("lastResetDate", new Date().toISOString()); // Update the last reset date
     updateRemainingBudget();
     updateProgressBar();
-    updateTotalExpenses(); // Update progress bar after setting budget
+    updateTotalExpenses();
 }
 
 function updateRemainingBudget() {
@@ -150,7 +180,6 @@ function updateRemainingBudget() {
     let remaining = budget - total;
     document.getElementById("remainingBudget").textContent = `$${remaining.toFixed(2)}`;
 }
-
 // Call this function whenever you update expenses
 updateRemainingBudget();
 function toggleCategory(category) {
@@ -169,3 +198,122 @@ function toggleCategory(category) {
         header.innerHTML = `${header.textContent.replace("▼", "▲")}`;
     }
 }
+function checkAndResetMonthlyData() {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const lastResetDate = localStorage.getItem("lastResetDate");
+
+    if (lastResetDate) {
+        const lastReset = new Date(lastResetDate);
+        const lastResetMonth = lastReset.getMonth();
+        const lastResetYear = lastReset.getFullYear();
+
+        if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
+            localStorage.removeItem("monthlyBudget");
+            localStorage.removeItem("savingsGoal");
+            localStorage.removeItem("expenses");
+            localStorage.removeItem("goals");
+
+            localStorage.setItem("lastResetDate", currentDate.toISOString());
+
+            document.getElementById("totalExpenses").textContent = "$0";
+            document.getElementById("savingsGoal").textContent = "$0";
+            document.getElementById("remainingBudget").textContent = "$0";
+            document.getElementById("progress").style.width = "0%";
+            document.getElementById("progress").style.background = "red";
+
+            const categories = ["Food", "Rent", "Entertainment", "Transport", "Other"];
+            categories.forEach(category => {
+                document.getElementById(`expenses${category}`).innerHTML = "";
+            });
+
+            document.getElementById("goalsList").innerHTML = "";
+
+            // Update the progress bar and remaining budget after resetting data
+            updateProgressBar();
+            updateRemainingBudget();
+        }
+    } else {
+        localStorage.setItem("lastResetDate", currentDate.toISOString());
+    }
+}
+let goals = JSON.parse(localStorage.getItem("goals")) || [];
+
+function addGoal() {
+    let description = document.getElementById("goalDescription").value;
+    let amount = parseFloat(document.getElementById("goalAmount").value);
+
+    if (description === "" || isNaN(amount) || amount <= 0) {
+        alert("Por favor, ingresa una descripción válida y un monto mayor a 0.");
+        return;
+    }
+
+    let goal = { id: Date.now(), description, amount, currentAmount: 0 };
+    goals.push(goal);
+    localStorage.setItem("goals", JSON.stringify(goals));
+
+    addGoalToDOM(goal);
+}
+
+function addGoalToDOM(goal) {
+    let goalsList = document.getElementById("goalsList");
+    let goalItem = document.createElement("div");
+    goalItem.className = "goal-item";
+    goalItem.innerHTML = `
+        <p>${goal.description}: $${goal.amount.toFixed(2)}</p>
+        <p>Ahorrado: $${goal.currentAmount.toFixed(2)}</p>
+        <input type="number" id="addToGoal${goal.id}" placeholder="Añadir a meta">
+        <button onclick="addToGoal(${goal.id})">Añadir</button>
+        <button onclick="removeGoal(${goal.id})">Eliminar</button>
+    `;
+    goalsList.appendChild(goalItem);
+}
+
+function addToGoal(goalId) {
+    let amountToAdd = parseFloat(document.getElementById(`addToGoal${goalId}`).value);
+    if (isNaN(amountToAdd) || amountToAdd <= 0) {
+        alert("Por favor, ingresa un monto válido.");
+        return;
+    }
+
+    let goal = goals.find(g => g.id === goalId);
+    if (goal.currentAmount + amountToAdd > goal.amount) {
+        alert("No puedes añadir más de lo necesario para alcanzar la meta.");
+        return;
+    }
+
+    goal.currentAmount += amountToAdd;
+    localStorage.setItem("goals", JSON.stringify(goals));
+
+    // Update the DOM
+    let goalItem = document.querySelector(`#goalsList .goal-item p:nth-child(2)`);
+    goalItem.textContent = `Ahorrado: $${goal.currentAmount.toFixed(2)}`;
+
+    // Add the amount to total expenses
+    let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+    let expense = { id: Date.now(), description: `Ahorro para ${goal.description}`, amount: amountToAdd, category: "Savings" };
+    savedExpenses.push(expense);
+    localStorage.setItem("expenses", JSON.stringify(savedExpenses));
+
+    updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar();
+}
+
+function removeGoal(goalId) {
+    goals = goals.filter(g => g.id !== goalId);
+    localStorage.setItem("goals", JSON.stringify(goals));
+
+    // Remove from DOM
+    let goalItem = document.querySelector(`#goalsList .goal-item`);
+    if (goalItem) {
+        goalItem.remove();
+    }
+}
+
+// Load goals when the page loads
+document.addEventListener("DOMContentLoaded", function () {
+    goals.forEach(goal => addGoalToDOM(goal));
+});
