@@ -153,3 +153,19 @@ function updateRemainingBudget() {
 
 // Call this function whenever you update expenses
 updateRemainingBudget();
+function toggleCategory(category) {
+    // Get the list element for the category
+    let list = document.getElementById(`expenses${category}`);
+    // Get the header element for the category
+    let header = list.previousElementSibling;
+
+    // Toggle the collapsed class on the list
+    list.classList.toggle("collapsed");
+
+    // Update the header text to show ▼ or ▲
+    if (list.classList.contains("collapsed")) {
+        header.innerHTML = `${header.textContent.replace("▲", "▼")}`;
+    } else {
+        header.innerHTML = `${header.textContent.replace("▼", "▲")}`;
+    }
+}

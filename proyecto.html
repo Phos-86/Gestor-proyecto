@@ -71,8 +71,107 @@ input {
     justify-content: space-between;
     align-items: center;
 }
+.collapsed {
+    display: none;
+}
+
+/* Style for category headers */
+h4 {
+    cursor: pointer;
+    color: #007bff;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+h4:hover {
+    text-decoration: underline;
+}
+ul {
+    transition: max-height 0.3s ease-out;
+    overflow: hidden;
+    max-height: 500px; /* Adjust based on your content */
+}
+
+ul.collapsed {
+    max-height: 0;
+}
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    nav {
+        padding: 5px;
+    }
+
+    nav a {
+        display: block;
+        margin: 5px 0;
+    }
+
+    #dashboard {
+        padding: 10px;
+    }
+
+    #addExpense, #expenseList, #budgetSection, #savingsSection, #savingsProgress {
+        margin: 10px 0;
+    }
+
+    input, button {
+        width: 100%;
+        margin: 5px 0;
+        box-sizing: border-box;
+    }
+
+    #expensesByCategory h4 {
+        font-size: 16px;
+    }
+
+    #progressBar {
+        width: 100%;
+    }
+
+    #progress {
+        height: 20px;
+    }
+
+    /* Adjust the layout for the expense list */
+    #expensesByCategory ul li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #expensesByCategory ul li button {
+        margin-top: 5px;
+    }
+}
+
+/* For screens smaller than 480px (very small devices) */
+@media (max-width: 480px) {
+    h2 {
+        font-size: 20px;
+    }
+
+    h3 {
+        font-size: 18px;
+    }
+
+    #dashboard p {
+        font-size: 14px;
+    }
+
+    #expensesByCategory h4 {
+        font-size: 14px;
+    }
+
+    #progress {
+        height: 15px;
+    }
+}
 </style>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
 	<title>Gestor financiero</title>
 </head>
@@ -105,16 +204,16 @@ input {
 </div>
 <div id="expenseList">
     <h3>Gastos</h3>
-    <div id="expensesByCategory"> <!-- Changed ID to "expensesByCategory" -->
-        <h4>Comida</h4>
+    <div id="expensesByCategory">
+        <h4 onclick="toggleCategory('Food')">Comida ▼</h4>
         <ul id="expensesFood"></ul>
-        <h4>Renta</h4>
+        <h4 onclick="toggleCategory('Rent')">Renta ▼</h4>
         <ul id="expensesRent"></ul>
-        <h4>Entretenimiento</h4>
+        <h4 onclick="toggleCategory('Entertainment')">Entretenimiento ▼</h4>
         <ul id="expensesEntertainment"></ul>
-        <h4>Transporte</h4>
+        <h4 onclick="toggleCategory('Transport')">Transporte ▼</h4>
         <ul id="expensesTransport"></ul>
-        <h4>Otro</h4>
+        <h4 onclick="toggleCategory('Other')">Otro ▼</h4>
         <ul id="expensesOther"></ul>
     </div>
 </div>
