@@ -1,0 +1,141 @@
+<html>
+<style type="text/css">
+	body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+nav {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+nav a {
+    color: white;
+    margin: 0 10px;
+    text-decoration: none;
+}
+#dashboard {
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+#addExpense, #expenseList {
+    margin: 20px;
+}
+input, button {
+    margin: 5px;
+    padding: 10px;
+}
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+#progress {
+    height: 30px;
+    background-color: red; /* Default color */
+    transition: width 0.5s ease; /* Smooth transition for width changes */
+}
+#expensesByCategory h4 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
+    color: #333;
+}
+
+#expensesByCategory ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#expensesByCategory ul li {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>
+<head>
+    <meta charset="UTF-8">
+	<title>Gestor financiero</title>
+</head>
+<body>
+<nav>
+        <a href="#">Inicio</a>
+        <a href="#">Gastos</a>
+        <a href="#">Metas</a>
+        <a href="#">Alertas</a>
+</nav>
+ <div id="dashboard">
+        <h2>Panel</h2>
+        <p>Gastos Totales: <span id="totalExpenses">$0</span></p>
+        <p>Ahorro: <span id="savingsGoal">$0</span></p>
+        <p>Presupuesto restante: <span id="remainingBudget">$0</span></p>
+    </div>
+    
+<div id="addExpense">
+    <h3>A&ntilde;adir Gastos</h3>
+    <select id="expenseCategory"> <!-- Keep this ID for the dropdown -->
+        <option value="Food">Comida</option>
+        <option value="Rent">Renta</option>
+        <option value="Entertainment">Entretenimiento</option>
+        <option value="Transport">Transporte</option>
+        <option value="Other">Otro</option>
+    </select>
+    <input type="text" id="expenseDescription" placeholder="Descripción">
+    <input type="number" id="expenseAmount" placeholder="Cantidad">
+    <button onclick="addExpense(); updateRemainingBudget(); updateProgressBar();">Añadir</button>
+</div>
+<div id="expenseList">
+    <h3>Gastos</h3>
+    <div id="expensesByCategory"> <!-- Changed ID to "expensesByCategory" -->
+        <h4>Comida</h4>
+        <ul id="expensesFood"></ul>
+        <h4>Renta</h4>
+        <ul id="expensesRent"></ul>
+        <h4>Entretenimiento</h4>
+        <ul id="expensesEntertainment"></ul>
+        <h4>Transporte</h4>
+        <ul id="expensesTransport"></ul>
+        <h4>Otro</h4>
+        <ul id="expensesOther"></ul>
+    </div>
+</div>
+    <div id="budgetSection">
+    <h3>Presupuesto Mensual</h3>
+    <input type="number" id="monthlyBudgetInput" placeholder="Ingresa tu presupuesto">
+    <button onclick="setMonthlyBudget(); updateProgressBar();">Establecer Presupuesto</button>
+    
+</div>
+    <div id="savingsSection">
+    <h3>Meta de Ahorro</h3>
+    <input type="number" id="savingsGoalInput" placeholder="Ingresa tu meta">
+    <button onclick="setSavingsGoal();updateProgressBar();">Establecer Meta</button>
+</div>
+<div id="savingsProgress">
+    <h3>Progreso de Ahorro</h3>
+    <button onclick="updateProgressBar()">Actualizar</button>
+    <div id="progressBar" style="width: 100%; background-color: #ddd;">
+        <div id="progress" style="width: 0%; height: 30px;"></div>
+    </div>
+</div>
+    <script src="app.js"></script>
+</body>
+</html>
