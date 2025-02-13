@@ -220,7 +220,7 @@ ul.collapsed {
 }
 html, body {
     max-width: 100%;
-    /* Prevents unwanted horizontal scrolling */
+ /* Prevents unwanted horizontal scrolling */
 }
 #backToTopBtn {
     display: none; /* Hidden by default */
@@ -258,6 +258,27 @@ html, body {
         line-height: 18px;
     }
 }
+#expensesByCategory ul {
+    list-style-type: none;
+    padding-left: 0;
+    max-height: 200px; /* Set a maximum height for the list */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    margin-bottom: 10px; /* Add some spacing between categories */
+    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    border-radius: 5px; /* Optional: Add rounded corners */
+    background-color: #f9f9f9; /* Optional: Add a background color */
+}
+
+#expensesByCategory ul li {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 </style>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -266,10 +287,8 @@ html, body {
 </head>
 <body>
 <nav>
-        <a href="#">Inicio</a>
-        <a href="#">Gastos</a>
-        <a href="#">Metas</a>
-        <a href="#">Alertas</a>
+        <a href="#gasto">Gastos</a>
+        <a href="#metas">Metas</a>
 </nav>
  <div id="dashboard">
         <h2>Panel</h2>
@@ -292,7 +311,7 @@ html, body {
     <button onclick="addExpense(); updateRemainingBudget(); updateProgressBar();">Añadir</button>
 </div>
 <div id="expenseList">
-    <h3>Gastos</h3>
+   <div class="gasto" id="gasto"> <h3>Gastos</h3>
     <div id="expensesByCategory">
         <h4 onclick="toggleCategory('Food')">Comida ▼</h4>
         <ul id="expensesFood"></ul>
@@ -314,7 +333,7 @@ html, body {
     
 </div>
     <div id="savingsSection">
-    <h3>Meta de Ahorro</h3>
+    <div class="metas" id="metas"><h3>Meta de Ahorro</h3>
     <input type="number" id="savingsGoalInput" placeholder="Ingresa tu meta">
     <button onclick="setSavingsGoal();updateProgressBar();">Establecer Meta</button>
 </div>

@@ -184,10 +184,24 @@ function updateRemainingBudget() {
     let budget = parseFloat(localStorage.getItem("monthlyBudget")) || 0;
     let total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
     let remaining = budget - total;
+
+    // Update the remaining budget display
     document.getElementById("remainingBudget").textContent = `$${remaining.toFixed(2)}`;
+
+    // Check if the budget is low (e.g., less than 20% of the budget)
+    const lowBudgetThreshold = budget * 0.2; // 20% of the budget
+    if (remaining > 0 && remaining <= lowBudgetThreshold) {
+        alert("¡Advertencia! Tu presupuesto está bajo. Te quedan $" + remaining.toFixed(2) + ".");
+    }
+
+    // Check if the budget has run out
+    if (remaining <= 0) {
+        alert("¡Advertencia! Tu presupuesto se ha agotado.");
+    }
 }
 // Call this function whenever you update expenses
 updateRemainingBudget();
+
 function toggleCategory(category) {
     // Get the list element for the category
     let list = document.getElementById(`expenses${category}`);
@@ -302,14 +316,14 @@ function addToGoal(goalId) {
 
     // Update the DOM
     let goalItem = document.querySelector(`#goalsList .goal-item:nth-child(${goals.findIndex(g => g.id === goalId) + 1})`);
-if (goalItem) {
-    let savedAmountText = goalItem.querySelector("p:nth-child(2)");
-    savedAmountText.textContent = `Ahorrado: $${goal.currentAmount.toFixed(2)}`;
+    if (goalItem) {
+        let savedAmountText = goalItem.querySelector("p:nth-child(2)");
+        savedAmountText.textContent = `Ahorrado: $${goal.currentAmount.toFixed(2)}`;
 
-    let progressBar = goalItem.querySelector(".goal-progress");
-    let progressPercentage = (goal.currentAmount / goal.amount) * 100;
-    progressBar.style.width = `${progressPercentage}%`;
-}
+        let progressBar = goalItem.querySelector(".goal-progress");
+        let progressPercentage = (goal.currentAmount / goal.amount) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+    }
 
     // Add the amount to total expenses
     let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
@@ -320,6 +334,28 @@ if (goalItem) {
     updateTotalExpenses();
     updateRemainingBudget();
     updateProgressBar();
+
+    // Check if the goal is reached
+    if (goal.currentAmount >= goal.amount) {
+        alert(`¡Felicidades! Has alcanzado tu meta de ${goal.description}.`);
+
+        // Request permission for notifications (if not already granted)
+        if (Notification.permission !== "granted") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification(`¡Felicidades!`, {
+                        body: `Has alcanzado tu meta de ${goal.description}.`,
+                        icon: "path/to/icon.png" // Optional: Add an icon
+                    });
+                }
+            });
+        } else {
+            new Notification(`¡Felicidades!`, {
+                body: `Has alcanzado tu meta de ${goal.description}.`,
+                icon: "path/to/icon.png" // Optional: Add an icon
+            });
+        }
+    }
 }
 
 function removeGoal(goalId) {
