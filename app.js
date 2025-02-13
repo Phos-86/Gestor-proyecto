@@ -31,6 +31,8 @@ function removeExpenseFromStorage(id) {
     console.log("Expenses after removing:", JSON.parse(localStorage.getItem("expenses")));
 
     updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar();
 }
 
 document.addEventListener("DOMContentLoaded", loadExpenses);
@@ -52,6 +54,10 @@ function loadExpenses() {
 
 function addExpenseToDOM(expense) {
     let expensesList = document.getElementById(`expenses${expense.category}`);
+    if (!expensesList) {
+        console.error(`Element with ID 'expenses${expense.category}' not found.`);
+        return;
+    }
     let listItem = document.createElement("li");
     listItem.textContent = `${expense.description}: $${expense.amount.toFixed(2)}`;
 
@@ -261,9 +267,16 @@ function addGoalToDOM(goal) {
     let goalsList = document.getElementById("goalsList");
     let goalItem = document.createElement("div");
     goalItem.className = "goal-item";
+
+    // Calculate the progress percentage
+    let progressPercentage = (goal.currentAmount / goal.amount) * 100;
+
     goalItem.innerHTML = `
         <p>${goal.description}: $${goal.amount.toFixed(2)}</p>
         <p>Ahorrado: $${goal.currentAmount.toFixed(2)}</p>
+        <div class="goal-progress-bar">
+            <div class="goal-progress" style="width: ${progressPercentage}%;"></div>
+        </div>
         <input type="number" id="addToGoal${goal.id}" placeholder="Añadir a meta">
         <button onclick="addToGoal(${goal.id})">Añadir</button>
         <button onclick="removeGoal(${goal.id})">Eliminar</button>
@@ -288,8 +301,15 @@ function addToGoal(goalId) {
     localStorage.setItem("goals", JSON.stringify(goals));
 
     // Update the DOM
-    let goalItem = document.querySelector(`#goalsList .goal-item p:nth-child(2)`);
-    goalItem.textContent = `Ahorrado: $${goal.currentAmount.toFixed(2)}`;
+    let goalItem = document.querySelector(`#goalsList .goal-item:nth-child(${goals.findIndex(g => g.id === goalId) + 1})`);
+if (goalItem) {
+    let savedAmountText = goalItem.querySelector("p:nth-child(2)");
+    savedAmountText.textContent = `Ahorrado: $${goal.currentAmount.toFixed(2)}`;
+
+    let progressBar = goalItem.querySelector(".goal-progress");
+    let progressPercentage = (goal.currentAmount / goal.amount) * 100;
+    progressBar.style.width = `${progressPercentage}%`;
+}
 
     // Add the amount to total expenses
     let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
@@ -303,17 +323,43 @@ function addToGoal(goalId) {
 }
 
 function removeGoal(goalId) {
+    // Find the goal to get its description
+    let goal = goals.find(g => g.id === goalId);
+    if (!goal) {
+        console.error("Goal not found.");
+        return;
+    }
+
+    // Remove the goal from the goals array
     goals = goals.filter(g => g.id !== goalId);
     localStorage.setItem("goals", JSON.stringify(goals));
 
-    // Remove from DOM
+    // Remove the goal from the DOM
     let goalItem = document.querySelector(`#goalsList .goal-item`);
     if (goalItem) {
         goalItem.remove();
     }
-}
 
-// Load goals when the page loads
-document.addEventListener("DOMContentLoaded", function () {
-    goals.forEach(goal => addGoalToDOM(goal));
-});
+    // Remove all related savings expenses from localStorage and the DOM
+    let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+    let filteredExpenses = savedExpenses.filter(expense => {
+        // Check if the expense is related to the goal
+        if (expense.category === "Savings" && expense.description.includes(goal.description)) {
+            // Remove the expense from the DOM
+            let expenseItem = document.querySelector(`#expensesSavings li[data-id="${expense.id}"]`);
+            if (expenseItem) {
+                expenseItem.remove();
+            }
+            return false; // Exclude this expense from the filtered list
+        }
+        return true; // Keep this expense in the filtered list
+    });
+
+    // Update localStorage with the filtered expenses
+    localStorage.setItem("expenses", JSON.stringify(filteredExpenses));
+
+    // Update the total expenses and remaining budget
+    updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar();
+}
