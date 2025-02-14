@@ -1,4 +1,6 @@
 let totalExpenses = 0;
+let hasShownLowBudgetWarning = false; // Track if low budget warning has been shown
+let hasShownBudgetDepletedWarning = false; // Track if budget depleted warning has been shown
 
 function addExpense() {
     let description = document.getElementById("expenseDescription").value;
@@ -110,6 +112,7 @@ function checkGoal() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    checkAndNotifyMonthlyReset(); // Add this line
     checkAndResetMonthlyData(); // Check and reset monthly data if necessary
 
     // Load the monthly budget from localStorage
@@ -191,12 +194,24 @@ function updateRemainingBudget() {
     // Check if the budget is low (e.g., less than 20% of the budget)
     const lowBudgetThreshold = budget * 0.2; // 20% of the budget
     if (remaining > 0 && remaining <= lowBudgetThreshold) {
-        alert("¡Advertencia! Tu presupuesto está bajo. Te quedan $" + remaining.toFixed(2) + ".");
+        if (!hasShownLowBudgetWarning) {
+            alert("¡Advertencia! Tu presupuesto está bajo. Te quedan $" + remaining.toFixed(2) + ".");
+            hasShownLowBudgetWarning = true; // Set the flag to true to prevent repeated warnings
+        }
+    } else {
+        // Reset the flag if the remaining budget is above the threshold
+        hasShownLowBudgetWarning = false;
     }
 
     // Check if the budget has run out
     if (remaining <= 0) {
-        alert("¡Advertencia! Tu presupuesto se ha agotado.");
+        if (!hasShownBudgetDepletedWarning) {
+            alert("¡Advertencia! Tu presupuesto se ha agotado.");
+            hasShownBudgetDepletedWarning = true; // Set the flag to true to prevent repeated warnings
+        }
+    } else {
+        // Reset the flag if the remaining budget is above zero
+        hasShownBudgetDepletedWarning = false;
     }
 }
 // Call this function whenever you update expenses
@@ -218,6 +233,78 @@ function toggleCategory(category) {
         header.innerHTML = `${header.textContent.replace("▼", "▲")}`;
     }
 }
+function checkAndNotifyMonthlyReset() {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const lastResetDate = localStorage.getItem("lastResetDate");
+
+    if (lastResetDate) {
+        const lastReset = new Date(lastResetDate);
+        const lastResetMonth = lastReset.getMonth();
+        const lastResetYear = lastReset.getFullYear();
+
+        if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
+            // Notify the user that the monthly reset has occurred
+            notifyUser("Monthly Reset", "Your monthly budget and expenses have been reset.");
+
+            // Reset the data
+            localStorage.removeItem("monthlyBudget");
+            localStorage.removeItem("savingsGoal");
+            localStorage.removeItem("expenses");
+            localStorage.removeItem("goals");
+
+            localStorage.setItem("lastResetDate", currentDate.toISOString());
+
+            // Reset the warning flags
+            hasShownLowBudgetWarning = false;
+            hasShownBudgetDepletedWarning = false;
+
+            document.getElementById("totalExpenses").textContent = "$0";
+            document.getElementById("savingsGoal").textContent = "$0";
+            document.getElementById("remainingBudget").textContent = "$0";
+            document.getElementById("progress").style.width = "0%";
+            document.getElementById("progress").style.background = "red";
+
+            const categories = ["Food", "Rent", "Entertainment", "Transport", "Other"];
+            categories.forEach(category => {
+                document.getElementById(`expenses${category}`).innerHTML = "";
+            });
+
+            document.getElementById("goalsList").innerHTML = "";
+
+            // Update the progress bar and remaining budget after resetting data
+            updateProgressBar();
+            updateRemainingBudget();
+        }
+    } else {
+        localStorage.setItem("lastResetDate", currentDate.toISOString());
+    }
+}
+
+// Function to notify the user
+function notifyUser(title, message) {
+    // Check if the browser supports notifications
+    if (!("Notification" in window)) {
+        alert("This browser does not support desktop notifications. Please enable them in your browser settings.");
+        return;
+    }
+
+    // Check if the user has granted permission to show notifications
+    if (Notification.permission === "granted") {
+        // If permission is granted, show the notification
+        new Notification(title, { body: message });
+    } else if (Notification.permission !== "denied") {
+        // If permission is not granted, request permission only once
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification(title, { body: message });
+            }
+        });
+    }
+}
+
 function checkAndResetMonthlyData() {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -294,6 +381,7 @@ function addGoalToDOM(goal) {
         <input type="number" id="addToGoal${goal.id}" placeholder="Añadir a meta">
         <button onclick="addToGoal(${goal.id})">Añadir</button>
         <button onclick="removeGoal(${goal.id})">Eliminar</button>
+
     `;
     goalsList.appendChild(goalItem);
 }
@@ -355,10 +443,13 @@ function addToGoal(goalId) {
                 icon: "path/to/icon.png" // Optional: Add an icon
             });
         }
+
+        // Remove the goal from the DOM and the goals array
+         removeGoal(goalId, true); 
     }
 }
 
-function removeGoal(goalId) {
+function removeGoal(goalId, keepSavings = false) {
     // Find the goal to get its description
     let goal = goals.find(g => g.id === goalId);
     if (!goal) {
@@ -376,23 +467,25 @@ function removeGoal(goalId) {
         goalItem.remove();
     }
 
-    // Remove all related savings expenses from localStorage and the DOM
-    let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    let filteredExpenses = savedExpenses.filter(expense => {
-        // Check if the expense is related to the goal
-        if (expense.category === "Savings" && expense.description.includes(goal.description)) {
-            // Remove the expense from the DOM
-            let expenseItem = document.querySelector(`#expensesSavings li[data-id="${expense.id}"]`);
-            if (expenseItem) {
-                expenseItem.remove();
+    // Only remove savings expenses if keepSavings is false
+    if (!keepSavings) {
+        let savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
+        let filteredExpenses = savedExpenses.filter(expense => {
+            // Check if the expense is related to the goal
+            if (expense.category === "Savings" && expense.description.includes(goal.description)) {
+                // Remove the expense from the DOM
+                let expenseItem = document.querySelector(`#expensesSavings li[data-id="${expense.id}"]`);
+                if (expenseItem) {
+                    expenseItem.remove();
+                }
+                return false; // Exclude this expense from the filtered list
             }
-            return false; // Exclude this expense from the filtered list
-        }
-        return true; // Keep this expense in the filtered list
-    });
+            return true; // Keep this expense in the filtered list
+        });
 
-    // Update localStorage with the filtered expenses
-    localStorage.setItem("expenses", JSON.stringify(filteredExpenses));
+        // Update localStorage with the filtered expenses
+        localStorage.setItem("expenses", JSON.stringify(filteredExpenses));
+    }
 
     // Update the total expenses and remaining budget
     updateTotalExpenses();
