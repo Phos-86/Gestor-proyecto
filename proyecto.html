@@ -287,8 +287,34 @@ html, body {
     <!-- Add this meta tag to ensure the page is mobile-friendly -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
 </head>
 <body>
+    <div id="authSection">
+    <h3>Login</h3>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+
+    <h3>Sign Up</h3>
+    <input type="email" id="signupEmail" placeholder="Email">
+    <input type="password" id="signupPassword" placeholder="Password">
+    <button onclick="signup()">Sign Up</button>
+</div>
 <nav>
         <a href="#gasto">Gastos</a>
         <a href="#metas">Metas</a>
@@ -299,7 +325,7 @@ html, body {
     <p>Ahorro: <span id="savingsGoal">$0</span></p>
     <p>Presupuesto restante: <span id="remainingBudget">$0</span></p>
     <!-- Add the button here -->
-    <button onclick="simulateMonthlyReset()" ontouchstart="simulateMonthlyReset()">Simular Reinicio Mensual</button>s
+    <button onclick="simulateMonthlyReset()" ontouchstart="simulateMonthlyReset()">Simular Reinicio Mensual</button>
 </div>
     
 <div id="addExpense">
@@ -356,6 +382,7 @@ html, body {
         <div id="progress" style="width: 0%; height: 30px;"></div>
     </div>
 </div>
+<button onclick="logout()">Logout</button>
 <button id="backToTopBtn" title="Go to top">↑</button>
     <script src="app.js"></script>
 </body>

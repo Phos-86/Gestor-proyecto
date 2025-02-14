@@ -191,27 +191,30 @@ function updateRemainingBudget() {
     // Update the remaining budget display
     document.getElementById("remainingBudget").textContent = `$${remaining.toFixed(2)}`;
 
-    // Check if the budget is low (e.g., less than 20% of the budget)
-    const lowBudgetThreshold = budget * 0.2; // 20% of the budget
-    if (remaining > 0 && remaining <= lowBudgetThreshold) {
-        if (!hasShownLowBudgetWarning) {
-            alert("¡Advertencia! Tu presupuesto está bajo. Te quedan $" + remaining.toFixed(2) + ".");
-            hasShownLowBudgetWarning = true; // Set the flag to true to prevent repeated warnings
+    // Check if the budget is set before showing any warnings
+    if (budget > 0) {
+        // Check if the budget is low (e.g., less than 20% of the budget)
+        const lowBudgetThreshold = budget * 0.2; // 20% of the budget
+        if (remaining > 0 && remaining <= lowBudgetThreshold) {
+            if (!hasShownLowBudgetWarning) {
+                alert("¡Advertencia! Tu presupuesto está bajo. Te quedan $" + remaining.toFixed(2) + ".");
+                hasShownLowBudgetWarning = true; // Set the flag to true to prevent repeated warnings
+            }
+        } else {
+            // Reset the flag if the remaining budget is above the threshold
+            hasShownLowBudgetWarning = false;
         }
-    } else {
-        // Reset the flag if the remaining budget is above the threshold
-        hasShownLowBudgetWarning = false;
-    }
 
-    // Check if the budget has run out
-    if (remaining <= 0) {
-        if (!hasShownBudgetDepletedWarning) {
-            alert("¡Advertencia! Tu presupuesto se ha agotado.");
-            hasShownBudgetDepletedWarning = true; // Set the flag to true to prevent repeated warnings
+        // Check if the budget has run out
+        if (remaining <= 0) {
+            if (!hasShownBudgetDepletedWarning) {
+                alert("¡Advertencia! Tu presupuesto se ha agotado.");
+                hasShownBudgetDepletedWarning = true; // Set the flag to true to prevent repeated warnings
+            }
+        } else {
+            // Reset the flag if the remaining budget is above zero
+            hasShownBudgetDepletedWarning = false;
         }
-    } else {
-        // Reset the flag if the remaining budget is above zero
-        hasShownBudgetDepletedWarning = false;
     }
 }
 // Call this function whenever you update expenses
@@ -539,3 +542,70 @@ function simulateMonthlyReset() {
 }
 
 
+
+function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Signed in
+            const user = userCredential.user;
+            alert('Logged in successfully!');
+            // Redirect or update UI
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            alert(errorMessage);
+        });
+}
+
+function signup() {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Signed up
+            const user = userCredential.user;
+            alert('Signed up successfully!');
+            // Redirect or update UI
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            alert(errorMessage);
+        });
+}
+
+
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        // User is signed in, allow access to protected content
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+    } else {
+        // No user is signed in, redirect to login
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+    }
+});
+
+function getUserKey(key) {
+    const user = firebase.auth().currentUser;
+    return user ? `${user.uid}_${key}` : key;
+}
+
+// Example usage
+localStorage.setItem(getUserKey('expenses'), JSON.stringify(expenses));
+
+
+function logout() {
+    firebase.auth().signOut().then(() => {
+        alert('Logged out successfully!');
+        // Redirect or update UI
+    }).catch((error) => {
+        alert(error.message);
+    });
+}
