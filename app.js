@@ -774,7 +774,39 @@ function checkSavingsGoalAfterReset() {
     const goal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
     const total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
 
+    console.log("Goal:", goal);
+    console.log("Total Expenses:", total);
+
+    // Skip if no goal is set
+    if (goal === 0) {
+        console.log("No savings goal set.");
+        return;
+    }
+
+    // Check if the savings goal was achieved
     if (total >= goal) {
+        console.log("Goal reached!");
         alert("¡Has alcanzado tu meta de ahorro!");
+    } else {
+        // Get the progress percentage from the progress bar width
+        const progressBar = document.getElementById("progress");
+        const progressWidth = parseFloat(progressBar.style.width); // e.g., "50%" -> 50
+
+        console.log("Progress Width:", progressWidth);
+
+        // Determine the message based on the progress percentage
+        if (progressWidth >= 75) {
+            console.log("Progress >= 75%");
+            alert("¡Casi llegas a tu meta de ahorro!");
+        } else if (progressWidth >= 25) {
+            console.log("Progress >= 25%");
+            alert("Vas por buen camino, pero aún te falta.");
+        } else if (progressWidth > 0) {
+            console.log("Progress > 0%");
+            alert("Muy pocos ahorros realizados este mes.");
+        } else {
+            console.log("Progress = 0%");
+            alert("No se realizaron ahorros este mes. ¡El próximo mes será mejor!");
+        }
     }
 }
