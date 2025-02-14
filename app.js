@@ -247,7 +247,7 @@ function checkAndNotifyMonthlyReset() {
 
         if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
             // Notify the user that the monthly reset has occurred
-            notifyUser("Monthly Reset", "Your monthly budget and expenses have been reset.");
+            notifyUser("Reseteo mensual", "Sus gastos y presupuestos meansuales se ahn reseteado");
 
             // Reset the data
             localStorage.removeItem("monthlyBudget");
@@ -514,3 +514,22 @@ backToTopBtn.onclick = function() {
 if (!backToTopBtn) {
     console.error("Error: #backToTopBtn not found in the DOM.");
 }
+
+
+function simulateMonthlyReset() {
+    // Manually set the last reset date to a month ago to trigger the reset
+    const currentDate = new Date();
+    const lastMonthDate = new Date(currentDate);
+    lastMonthDate.setMonth(currentDate.getMonth() - 1); // Set to last month
+
+    // Save the fake last reset date to localStorage
+    localStorage.setItem("lastResetDate", lastMonthDate.toISOString());
+
+    // Call the monthly reset function
+    checkAndNotifyMonthlyReset();
+
+    // Optional: Alert the user that the reset was simulated
+    alert("Reinicio mensual simulado. Los datos se han restablecido.");
+}
+
+
