@@ -287,46 +287,23 @@ html, body {
     <!-- Add this meta tag to ensure the page is mobile-friendly -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBRNWDG8gavkWyFogBfqEZ3Il2CC7X7EcE",
-    authDomain: "gestor-1ac1d.firebaseapp.com",
-    projectId: "gestor-1ac1d",
-    storageBucket: "gestor-1ac1d.firebasestorage.app",
-    messagingSenderId: "9568096868",
-    appId: "1:9568096868:web:bf68aecd81894925410571",
-    measurementId: "G-WJ70S9MVND"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
 </head>
 <body>
-    <div id="authSection">
-    <h3>Login</h3>
-    <input type="email" id="loginEmail" placeholder="Email">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button onclick="login()">Login</button>
-
-    <h3>Sign Up</h3>
-    <input type="email" id="signupEmail" placeholder="Email">
-    <input type="password" id="signupPassword" placeholder="Password">
-    <button onclick="signup()">Sign Up</button>
-</div>
 <nav>
         <a href="#gasto">Gastos</a>
         <a href="#metas">Metas</a>
 </nav>
+<div id="authSection">
+    <h3>Login</h3>
+    <input type="text" id="loginUsername" placeholder="Username">
+    <input type="password" id="loginPassword" placeholder="Password">
+    <button onclick="login()">Login</button>
+
+    <h3>Sign Up</h3>
+    <input type="text" id="signupUsername" placeholder="Username">
+    <input type="password" id="signupPassword" placeholder="Password">
+    <button onclick="signup()">Sign Up</button>
+</div>
 <div id="dashboard">
     <h2>Panel</h2>
     <p>Gastos Totales: <span id="totalExpenses">$0</span></p>
@@ -392,8 +369,7 @@ html, body {
 </div>
 <button onclick="logout()">Logout</button>
 <button id="backToTopBtn" title="Go to top">↑</button>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcrypt.js/2.4.0/bcrypt.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

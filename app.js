@@ -543,69 +543,131 @@ function simulateMonthlyReset() {
 
 
 
-function login() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-
-    firebase.auth().signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // Signed in
-            const user = userCredential.user;
-            alert('Logged in successfully!');
-            // Redirect or update UI
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            alert(errorMessage);
-        });
-}
-
 function signup() {
-    const email = document.getElementById('signupEmail').value;
+    const username = document.getElementById('signupUsername').value;
     const password = document.getElementById('signupPassword').value;
 
-    firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            // Signed up
-            const user = userCredential.user;
-            alert('Signed up successfully!');
-            // Redirect or update UI
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            alert(errorMessage);
-        });
+    if (!username || !password) {
+        alert("Please enter a username and password.");
+        return;
+    }
+
+    // Check if the user already exists
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const userExists = users.some(user => user.username === username);
+
+    if (userExists) {
+        alert("Username already exists. Please choose a different username.");
+        return;
+    }
+
+    // Save the new user
+    users.push({ username, password });
+    localStorage.setItem('users', JSON.stringify(users));
+
+    alert("Signup successful! Please log in.");
 }
 
+// Function to log in an existing user
+function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-firebase.auth().onAuthStateChanged((user) => {
+    if (!username || !password) {
+        alert("Please enter a username and password.");
+        return;
+    }
+
+    // Check if the user exists
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(user => user.username === username && user.password === password);
+
     if (user) {
-        // User is signed in, allow access to protected content
+        alert("Login successful!");
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+
+        // Save the current user in localStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
+    } else {
+        alert("Invalid username or password.");
+    }
+}
+
+// Function to check if a user is logged in
+function checkLogin() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+    if (currentUser) {
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
     } else {
-        // No user is signed in, redirect to login
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('dashboard').style.display = 'none';
     }
-});
+}
+
+// Check login status when the page loads
+document.addEventListener("DOMContentLoaded", checkLogin);
 
 function getUserKey(key) {
-    const user = firebase.auth().currentUser;
-    return user ? `${user.uid}_${key}` : key;
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    return currentUser ? `${currentUser.username}_${key}` : key;
 }
 
 // Example usage
 localStorage.setItem(getUserKey('expenses'), JSON.stringify(expenses));
 
-
 function logout() {
-    firebase.auth().signOut().then(() => {
-        alert('Logged out successfully!');
-        // Redirect or update UI
-    }).catch((error) => {
-        alert(error.message);
-    });
+    localStorage.removeItem('currentUser');
+    alert("Logged out successfully!");
+    document.getElementById('authSection').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'none';
+}
+
+function signup() {
+    const username = document.getElementById('signupUsername').value;
+    const password = document.getElementById('signupPassword').value;
+
+    if (!username || !password) {
+        alert("Please enter a username and password.");
+        return;
+    }
+
+    // Hash the password
+    const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
+    // Save the new user
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    users.push({ username, password: hashedPassword });
+    localStorage.setItem('users', JSON.stringify(users));
+
+    alert("Signup successful! Please log in.");
+}
+
+
+function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (!username || !password) {
+        alert("Please enter a username and password.");
+        return;
+    }
+
+    // Check if the user exists
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users.find(user => user.username === username);
+
+    if (user && bcrypt.compareSync(password, user.password)) {
+        alert("Login successful!");
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+
+        // Save the current user in localStorage
+        localStorage.setItem('currentUser', JSON.stringify(user));
+    } else {
+        alert("Invalid username or password.");
+    }
 }
