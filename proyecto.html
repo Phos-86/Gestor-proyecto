@@ -279,6 +279,81 @@ html, body {
     justify-content: space-between;
     align-items: center;
 }
+  /* Modal styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 10% auto; /* 10% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+        max-width: 400px; /* Maximum width */
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-button:hover {
+        color: black;
+    }
+.overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 1; /* Sit below the modal */
+}
+
+/* Modal styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 2; /* Sit above the overlay */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Disable pointer events for main content when modal is open */
+.modal-open #mainContent {
+    pointer-events: none;
+    opacity: 0.5;
+}
 </style>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -287,32 +362,40 @@ html, body {
     <!-- Add this meta tag to ensure the page is mobile-friendly -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
 <nav>
         <a href="#gasto">Gastos</a>
         <a href="#metas">Metas</a>
 </nav>
-<div id="authSection">
-    <h3>Login</h3>
-    <input type="text" id="loginUsername" placeholder="Username">
-    <input type="password" id="loginPassword" placeholder="Password">
-    <button onclick="login()">Login</button>
+<div id="authModal" class="modal">
+    <div class="modal-content">
+ 
+        <h3>Iniciar Sesión</h3>
+        <input type="text" id="loginUsername" placeholder="Nombre de usuario">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
+        <button onclick="login()">Inicar Sesión</button>
 
-    <h3>Sign Up</h3>
-    <input type="text" id="signupUsername" placeholder="Username">
-    <input type="password" id="signupPassword" placeholder="Password">
-    <button onclick="signup()">Sign Up</button>
+        <h3>Unirse</h3>
+        <input type="text" id="signupUsername" placeholder="Nombre de usuario">
+        <input type="password" id="signupPassword" placeholder="Contraseña">
+        <button onclick="signup()">Unirse</button>
+    </div>
 </div>
-<div id="dashboard">
+
+
+<!-- Rest of your content -->
+<div id="dashboard" style="display: none;">
     <h2>Panel</h2>
     <p>Gastos Totales: <span id="totalExpenses">$0</span></p>
     <p>Ahorro: <span id="savingsGoal">$0</span></p>
     <p>Presupuesto restante: <span id="remainingBudget">$0</span></p>
-    <!-- Add the button here -->
-    <button onclick="simulateMonthlyReset()" ontouchstart="simulateMonthlyReset()">Simular Reinicio Mensual</button>
+    <button onclick="simulateMonthlyReset()">Simular Reinicio Mensual</button>
+    <button onclick="logout()">Cerrar Sesión</button>
+    <button onclick="removeUser()">Remover Usuario</button>
 </div>
-    
+<div id="overlay" class="overlay"></div>
 <div id="addExpense">
     <h3>A&ntilde;adir Gastos</h3>
     <select id="expenseCategory"> <!-- Keep this ID for the dropdown -->
@@ -367,9 +450,7 @@ html, body {
         <div id="progress" style="width: 0%; height: 30px;"></div>
     </div>
 </div>
-<button onclick="logout()">Logout</button>
 <button id="backToTopBtn" title="Go to top">↑</button>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bcrypt.js/2.4.0/bcrypt.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
