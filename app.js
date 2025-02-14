@@ -1,6 +1,7 @@
 let totalExpenses = 0;
-let hasShownLowBudgetWarning = false; // Track if low budget warning has been shown
-let hasShownBudgetDepletedWarning = false; // Track if budget depleted warning has been shown
+let hasShownLowBudgetWarning = false;
+let hasShownBudgetDepletedWarning = false;
+let hasShownSavingsMessage = false; // Track if savings message has been shown
 
 function addExpense() {
     const description = document.getElementById("expenseDescription").value;
@@ -88,10 +89,10 @@ function setSavingsGoal() {
         return;
     }
     localStorage.setItem(getUserKey('savingsGoal'), goal);
-     localStorage.setItem("lastResetDate", new Date().toISOString()); // Update the last reset date
+    localStorage.setItem("lastResetDate", new Date().toISOString()); // Update the last reset date
 
     document.getElementById("savingsGoal").textContent = `$${goal}`;
-    checkGoal();
+    // Remove the checkGoal() call here to prevent the message from appearing immediately
 }
 
 function checkGoal() {
@@ -230,6 +231,7 @@ function toggleCategory(category) {
         header.innerHTML = `${header.textContent.replace("▼", "▲")}`;
     }
 }
+
 function checkAndNotifyMonthlyReset() {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -244,13 +246,13 @@ function checkAndNotifyMonthlyReset() {
 
         if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
             // Notify the user that the monthly reset has occurred
-            notifyUser("Reseteo mensual", "Sus gastos y presupuestos meansuales se han reseteado");
+            notifyUser("Reseteo mensual", "Sus gastos y presupuestos mensuales se han reseteado");
 
             // Reset the data
             localStorage.removeItem(getUserKey('monthlyBudget'));
-    localStorage.removeItem(getUserKey('savingsGoal'));
-    localStorage.removeItem(getUserKey('expenses'));
-    localStorage.removeItem(getUserKey('goals'));
+            localStorage.removeItem(getUserKey('savingsGoal'));
+            localStorage.removeItem(getUserKey('expenses'));
+            localStorage.removeItem(getUserKey('goals'));
 
             localStorage.setItem("lastResetDate", currentDate.toISOString());
 
@@ -274,6 +276,9 @@ function checkAndNotifyMonthlyReset() {
             // Update the progress bar and remaining budget after resetting data
             updateProgressBar();
             updateRemainingBudget();
+
+            // Check if the savings goal was achieved during the previous month
+            checkSavingsGoalAfterReset();
         }
     } else {
         localStorage.setItem("lastResetDate", currentDate.toISOString());
@@ -532,7 +537,7 @@ function signup() {
     const password = document.getElementById('signupPassword').value;
 
     if (!username || !password) {
-        alert("Please enter a username and password.");
+        alert("Por favor ingrese un nombre de usuario y contraseña.");
         return;
     }
 
@@ -541,7 +546,7 @@ function signup() {
     const userExists = users.some(user => user.username === username);
 
     if (userExists) {
-        alert("Username already exists. Please choose a different username.");
+        alert("Nombre de usuario ya existente. Por favor eliga un nombre diferente.");
         return;
     }
 
@@ -549,7 +554,7 @@ function signup() {
     users.push({ username, password });
     localStorage.setItem('users', JSON.stringify(users));
 
-    alert("Signup successful! Please log in.");
+    alert("Cuenta creada correctamente! Por favor inicie sesión.");
 }
 
 // Function to log in an existing user
@@ -558,7 +563,7 @@ function login() {
     const password = document.getElementById('loginPassword').value;
 
     if (!username || !password) {
-        alert("Please enter a username and password.");
+        alert("Por favor ingrese un nombre de usuario y contraseña.");
         return;
     }
 
@@ -567,14 +572,14 @@ function login() {
     const user = users.find(user => user.username === username && user.password === password);
 
     if (user) {
-        alert("Login successful!");
+        alert("Sesión inciada correctamente!");
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
 
         // Save the current user in localStorage
         localStorage.setItem('currentUser', JSON.stringify(user));
     } else {
-        alert("Invalid username or password.");
+        alert("Nombre de usuario o contraseña invalidos.");
     }
 }
 
@@ -619,7 +624,7 @@ localStorage.setItem(getUserKey('expenses'), JSON.stringify(expenses));
 
 function logout() {
     localStorage.removeItem('currentUser');
-    alert("Logged out successfully!");
+    alert("Sesión cerrada correctamente!");
     checkLogin(); // Show the modal again
 
     // Clear the existing data from the DOM
@@ -642,7 +647,7 @@ function signup() {
     const password = document.getElementById('signupPassword').value;
 
     if (!username || !password) {
-        alert("Please enter a username and password.");
+        alert("Por favor ingrese un nombre de usuario y contraseña.");
         return;
     }
 
@@ -654,14 +659,14 @@ function signup() {
     const userExists = users.some(user => user.username === username);
 
     if (userExists) {
-        alert("Username already exists. Please choose a different username.");
+        alert("Nombre de usuario ya existente. Por favor eliga un nombre diferente.");
         return;
     }
 
     users.push({ username, password: hashedPassword });
     localStorage.setItem('users', JSON.stringify(users));
 
-    alert("Signup successful! Please log in.");
+    alert("usuario creado correctamente! Por favor inicie sesión.");
 }
 
 function login() {
@@ -669,7 +674,7 @@ function login() {
     const password = document.getElementById('loginPassword').value;
 
     if (!username || !password) {
-        alert("Please enter a username and password.");
+        alert("Por favor ingrese un nombre de usuario y contraseña.");
         return;
     }
 
@@ -679,11 +684,11 @@ function login() {
     const hashedPassword = CryptoJS.SHA256(password).toString();
 
     if (user && user.password === hashedPassword) {
-        alert("Login successful!");
+        alert("Sesión inciada correctamente!");
         localStorage.setItem('currentUser', JSON.stringify(user));
         checkLogin(); // Force reload of user-specific data
     } else {
-        alert("Invalid username or password.");
+        alert("Nombre de usuario o contraseña invalidos.");
     }
 }
 
@@ -715,7 +720,7 @@ async function login() {
     const password = document.getElementById('loginPassword').value;
 
     if (!username || !password) {
-        alert("Please enter a username and password.");
+        alert("Por favor ingrese un nombre de usuario y contraseña.");
         return;
     }
 
@@ -727,11 +732,11 @@ async function login() {
     const hashedPassword = CryptoJS.SHA256(password).toString();
 
     if (user && user.password === hashedPassword) {
-        alert("Login successful!");
+        alert("Sesión inciada correctamente!");
         localStorage.setItem('currentUser', JSON.stringify(user));
         checkLogin(); // Update the UI
     } else {
-        alert("Invalid username or password.");
+        alert("Nombre de usuario o contraseña invalidos.");
     }
 }
 
@@ -739,11 +744,11 @@ async function login() {
 function removeUser() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser) {
-        alert("No user is currently logged in.");
+        alert("No existen usuarios conectados.");
         return;
     }
 
-    const confirmDelete = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+    const confirmDelete = confirm("Estas seguro que quieres eliminar esta cuenta? Esta acción es ABSOLUTA no puede ser deshecha.");
     if (!confirmDelete) return;
 
     // Remove user-specific data
@@ -758,9 +763,18 @@ function removeUser() {
 
     // Clear the current user and reset the UI
     localStorage.removeItem('currentUser');
-    alert("User account deleted successfully.");
+    alert("Cuenta eliminada correctamente.");
     checkLogin();
 }
 
 console.log("Current User Key:", getUserKey('expenses'));
 console.log("Expenses in localStorage:", JSON.parse(localStorage.getItem(getUserKey('expenses'))));
+
+function checkSavingsGoalAfterReset() {
+    const goal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
+    const total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+
+    if (total >= goal) {
+        alert("¡Has alcanzado tu meta de ahorro!");
+    }
+}
