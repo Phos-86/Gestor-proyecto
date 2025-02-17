@@ -135,24 +135,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function updateProgressBar() {
-    const budget = parseFloat(localStorage.getItem(getUserKey('monthlyBudget'))) || 0;
-    const total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
     const savingsGoal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
-
-    if (budget <= 0 || savingsGoal <= 0) {
+    const totalExpenses = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+    const budget = parseFloat(localStorage.getItem(getUserKey('monthlyBudget'))) || 0;
+    
+    if (savingsGoal <= 0 || budget <= 0) {
         document.getElementById("progress").style.width = "0%";
         document.getElementById("progress").style.background = "red";
         return;
     }
 
-    const unusedBudget = budget - total;
-    let progress = (unusedBudget / savingsGoal) * 100;
+    const savings = budget - totalExpenses; // How much you've saved
+    let progress = (savings / savingsGoal) * 100;
     if (progress > 100) progress = 100;
+    if (progress < 0) progress = 0; // Prevent negative values
 
     document.getElementById("progress").style.width = `${progress}%`;
 
-    let red = 255;
-    let green = 0;
+    // Adjust color based on progress
+    let red = 255, green = 0;
     if (progress <= 50) {
         green = Math.floor((progress / 50) * 255);
     } else {
@@ -304,29 +305,34 @@ function checkAndResetMonthlyData() {
         const lastResetYear = lastReset.getFullYear();
 
         if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
+            // Reset all data
             localStorage.removeItem(getUserKey('monthlyBudget'));
-    localStorage.removeItem(getUserKey('savingsGoal'));
-    localStorage.removeItem(getUserKey('expenses'));
-    localStorage.removeItem(getUserKey('goals'));
+            localStorage.removeItem(getUserKey('savingsGoal'));
+            localStorage.removeItem(getUserKey('expenses'));
+            localStorage.removeItem(getUserKey('goals'));
 
+            // Update reset date
             localStorage.setItem("lastResetDate", currentDate.toISOString());
 
+            // Reset UI values
             document.getElementById("totalExpenses").textContent = "$0";
             document.getElementById("savingsGoal").textContent = "$0";
             document.getElementById("remainingBudget").textContent = "$0";
             document.getElementById("progress").style.width = "0%";
             document.getElementById("progress").style.background = "red";
 
-            const categories = ["Food", "Rent", "Entertainment", "Transport", "Other"];
-            categories.forEach(category => {
+            // Clear expenses from categories
+            ["Food", "Rent", "Entertainment", "Transport", "Other"].forEach(category => {
                 document.getElementById(`expenses${category}`).innerHTML = "";
             });
 
             document.getElementById("goalsList").innerHTML = "";
 
-            // Update the progress bar and remaining budget after resetting data
-            updateProgressBar();
+            // Ensure UI is refreshed
+            loadExpenses();
+            updateTotalExpenses();
             updateRemainingBudget();
+            updateProgressBar();
         }
     } else {
         localStorage.setItem("lastResetDate", currentDate.toISOString());
@@ -493,25 +499,14 @@ if (!backToTopBtn) {
 
 
 function simulateMonthlyReset() {
-    console.log("Simulate Monthly Reset button clicked!"); // Debugging log
-
-    // Manually set the last reset date to a month ago to trigger the reset
+    console.log("Simulate Monthly Reset button clicked!");
     const currentDate = new Date();
     const lastMonthDate = new Date(currentDate);
-    lastMonthDate.setMonth(currentDate.getMonth() - 1); // Set to last month
-
-    console.log("Setting last reset date to:", lastMonthDate.toISOString()); // Debugging log
-
-    // Save the fake last reset date to localStorage
+    lastMonthDate.setMonth(currentDate.getMonth() - 1);
     localStorage.setItem("lastResetDate", lastMonthDate.toISOString());
 
-    // Call the monthly reset function
-    checkAndNotifyMonthlyReset();
-
-    // Optional: Alert the user that the reset was simulated
+    checkAndResetMonthlyData();
     alert("Reinicio mensual simulado. Los datos se han restablecido.");
-
-    console.log("Monthly reset simulation complete."); // Debugging log
 }
 
 
