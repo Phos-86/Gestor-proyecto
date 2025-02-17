@@ -106,6 +106,7 @@ function checkGoal() {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM fully loaded and parsed"); // Debugging line
     checkAndNotifyMonthlyReset(); // Ensure this is called
     checkAndResetMonthlyData();
 
@@ -234,8 +235,8 @@ function toggleCategory(category) {
     }
 }
 
-function checkAndNotifyMonthlyReset() {
-    const currentDate = new Date();
+function checkAndNotifyMonthlyReset(simulatedDate, isSimulation = false) {
+    const currentDate = simulatedDate || new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
     const lastResetDate = localStorage.getItem("lastResetDate");
@@ -245,26 +246,32 @@ function checkAndNotifyMonthlyReset() {
         const lastResetMonth = lastReset.getMonth();
         const lastResetYear = lastReset.getFullYear();
 
-        if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
-            // Retrieve data BEFORE reset
-            const previousGoal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
-            const previousTotal = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+        console.log("Current Month:", currentMonth);
+        console.log("Last Reset Month:", lastResetMonth);
 
-            // Reset data and UI
+        if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
+            console.log("Monthly reset triggered");
+
+            // Calculate the remaining budget before resetting
+            const budget = parseFloat(localStorage.getItem(getUserKey('monthlyBudget'))) || 0;
+            const totalExpenses = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+            const remainingBudget = budget - totalExpenses;
+
+            // Save previous goal and remaining budget before resetting
+            const previousGoal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
+            localStorage.setItem(getUserKey('previousGoal'), previousGoal);
+            localStorage.setItem(getUserKey('previousRemainingBudget'), remainingBudget);
+
+            // Reset data
             localStorage.removeItem(getUserKey('monthlyBudget'));
             localStorage.removeItem(getUserKey('savingsGoal'));
             localStorage.removeItem(getUserKey('expenses'));
             localStorage.removeItem(getUserKey('goals'));
-            localStorage.setItem("lastResetDate", currentDate.toISOString());
 
-            // Clear UI
-            document.getElementById("totalExpenses").textContent = "$0";
-            document.getElementById("savingsGoal").textContent = "$0";
-            document.getElementById("remainingBudget").textContent = "$0";
-            ["Food", "Rent", "Entertainment", "Transport", "Other"].forEach(category => {
-                document.getElementById(`expenses${category}`).innerHTML = "";
-            });
-            document.getElementById("goalsList").innerHTML = "";
+            // Update lastResetDate ONLY if it's NOT a simulation
+            if (!isSimulation) {
+                localStorage.setItem("lastResetDate", currentDate.toISOString());
+            }
 
             // Refresh UI
             loadExpenses();
@@ -272,11 +279,9 @@ function checkAndNotifyMonthlyReset() {
             updateRemainingBudget();
             updateProgressBar();
 
-            // Check savings goal with previous data
-            checkSavingsGoalAfterReset(previousGoal, previousTotal); // Pass parameters here
+            // Check savings goal based on remaining budget
+            checkSavingsGoalAfterReset(previousGoal, remainingBudget);
         }
-    } else {
-        localStorage.setItem("lastResetDate", currentDate.toISOString());
     }
 }
 
@@ -315,6 +320,16 @@ function checkAndResetMonthlyData() {
         const lastResetYear = lastReset.getFullYear();
 
         if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
+            // Calculate the remaining budget before resetting
+            const budget = parseFloat(localStorage.getItem(getUserKey('monthlyBudget'))) || 0;
+            const totalExpenses = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+            const remainingBudget = budget - totalExpenses;
+
+            // Save previous goal and remaining budget before resetting
+            const previousGoal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
+            localStorage.setItem(getUserKey('previousGoal'), previousGoal);
+            localStorage.setItem(getUserKey('previousRemainingBudget'), remainingBudget);
+
             // Reset all data
             localStorage.removeItem(getUserKey('monthlyBudget'));
             localStorage.removeItem(getUserKey('savingsGoal'));
@@ -343,6 +358,9 @@ function checkAndResetMonthlyData() {
             updateTotalExpenses();
             updateRemainingBudget();
             updateProgressBar();
+
+            // Check savings goal based on remaining budget
+            checkSavingsGoalAfterReset(previousGoal, remainingBudget);
         }
     } else {
         localStorage.setItem("lastResetDate", currentDate.toISOString());
@@ -510,13 +528,20 @@ if (!backToTopBtn) {
 
 function simulateMonthlyReset() {
     console.log("Simulate Monthly Reset button clicked!");
+
+    // Set lastResetDate to the previous month
     const currentDate = new Date();
     const lastMonthDate = new Date(currentDate);
     lastMonthDate.setMonth(currentDate.getMonth() - 1);
     localStorage.setItem("lastResetDate", lastMonthDate.toISOString());
 
-    checkAndResetMonthlyData(); // Reset data
-    checkAndNotifyMonthlyReset(); // Add this line to trigger savings check
+    // Force a "fake" current date to be next month (to trigger reset)
+    const simulatedCurrentDate = new Date(lastMonthDate);
+    simulatedCurrentDate.setMonth(lastMonthDate.getMonth() + 1);
+
+    // Call checkAndNotifyMonthlyReset with the simulated date and a flag
+    checkAndNotifyMonthlyReset(simulatedCurrentDate, true); // true = simulation mode
+
     alert("Reinicio mensual simulado. Los datos se han restablecido.");
 }
 
@@ -688,16 +713,20 @@ function removeUser() {
 console.log("Current User Key:", getUserKey('expenses'));
 console.log("Expenses in localStorage:", JSON.parse(localStorage.getItem(getUserKey('expenses'))));
 
-function checkSavingsGoalAfterReset(previousGoal, previousTotal) {
+function checkSavingsGoalAfterReset(previousGoal, previousRemainingBudget) {
+    console.log("checkSavingsGoalAfterReset called");
+    console.log("Previous Goal:", previousGoal);
+    console.log("Previous Remaining Budget:", previousRemainingBudget);
+
     if (previousGoal === 0) {
         console.log("No savings goal set last month.");
         return; // Skip if no goal
     }
 
-    if (previousTotal >= previousGoal) {
+    if (previousRemainingBudget >= previousGoal) {
         alert("¡Has alcanzado tu meta de ahorro del mes anterior!");
     } else {
-        const progress = (previousTotal / previousGoal) * 100;
+        const progress = (previousRemainingBudget / previousGoal) * 100;
         if (progress >= 75) {
             alert("¡Casi llegaste a tu meta de ahorro el mes pasado!");
         } else if (progress >= 25) {
