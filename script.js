@@ -1,10 +1,11 @@
 window.addEventListener('beforeinstallprompt', (event) => {
+  console.log('beforeinstallprompt event fired');
   event.preventDefault();
   const installPrompt = event;
-  // Show a custom "Add to Home Screen" button
   const installButton = document.getElementById('install-button');
   installButton.style.display = 'block';
   installButton.addEventListener('click', () => {
+    console.log('Install button clicked');
     installPrompt.prompt();
     installPrompt.userChoice.then((choice) => {
       if (choice.outcome === 'accepted') {
