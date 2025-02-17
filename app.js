@@ -520,7 +520,6 @@ function simulateMonthlyReset() {
     alert("Reinicio mensual simulado. Los datos se han restablecido.");
 }
 
-
 function signup() {
     const username = document.getElementById('signupUsername').value;
     const password = document.getElementById('signupPassword').value;
