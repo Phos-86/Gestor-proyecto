@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="es">
 <style type="text/css">
 	body {
     font-family: Arial, sans-serif;
@@ -365,6 +366,29 @@ html, body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
+    <h1>Bienvenido al Gestor de Proyectos</h1>
+  <button id="install-button" style="display: none;">Instalar App</button>
+
+  <script>
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      const installPrompt = event;
+      // Show a custom "Add to Home Screen" button
+      const installButton = document.getElementById('install-button');
+      installButton.style.display = 'block';
+      installButton.addEventListener('click', () => {
+        installPrompt.prompt();
+        installPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          installButton.style.display = 'none';
+        });
+      });
+    });
+  </script>
 <nav>
         <a href="#gasto">Gastos</a>
         <a href="#metas">Metas</a>
