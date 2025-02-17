@@ -238,13 +238,6 @@ function checkAndNotifyMonthlyReset() {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
-
-    const lastResetDate = localStorage.getItem("lastResetDate");
-
-    if (lastResetDate) function checkAndNotifyMonthlyReset() {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
     const lastResetDate = localStorage.getItem("lastResetDate");
 
     if (lastResetDate) {
@@ -537,21 +530,22 @@ function signup() {
         return;
     }
 
-    // Check if the user already exists
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const userExists = users.some(user => user.username === username);
+    // Hash the password
+    const hashedPassword = CryptoJS.SHA256(password).toString();
 
-    if (userExists) {
-        alert("Nombre de usuario ya existente. Por favor eliga un nombre diferente.");
+    // Save user
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    if (users.some(user => user.username === username)) {
+        alert("Nombre de usuario ya existe.");
         return;
     }
 
-    // Save the new user
-    users.push({ username, password });
+    users.push({ username, password: hashedPassword });
     localStorage.setItem('users', JSON.stringify(users));
-
-    alert("Cuenta creada correctamente! Por favor inicie sesión.");
+    alert("¡Cuenta creada! Inicie sesión.");
+    closeModal();
 }
+
 
 // Function to log in an existing user
 function login() {
@@ -563,19 +557,23 @@ function login() {
         return;
     }
 
-    // Check if the user exists
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(user => user.username === username && user.password === password);
+    const user = users.find(user => user.username === username);
 
-    if (user) {
-        alert("Sesión inciada correctamente!");
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+    if (!user) {
+        alert("Usuario no encontrado.");
+        return;
+    }
 
-        // Save the current user in localStorage
+    // Verify hashed password
+    const hashedPassword = CryptoJS.SHA256(password).toString();
+    if (user.password === hashedPassword) {
         localStorage.setItem('currentUser', JSON.stringify(user));
+        alert("¡Sesión iniciada!");
+        closeModal();
+        checkLogin(); // Refresh UI
     } else {
-        alert("Nombre de usuario o contraseña invalidos.");
+        alert("Contraseña incorrecta.");
     }
 }
 
@@ -638,58 +636,6 @@ function logout() {
     document.getElementById("progress").style.background = "red";
 }
 
-function signup() {
-    const username = document.getElementById('signupUsername').value;
-    const password = document.getElementById('signupPassword').value;
-
-    if (!username || !password) {
-        alert("Por favor ingrese un nombre de usuario y contraseña.");
-        return;
-    }
-
-    // Hash the password using CryptoJS
-    const hashedPassword = CryptoJS.SHA256(password).toString();
-
-    // Save the new user
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const userExists = users.some(user => user.username === username);
-
-    if (userExists) {
-        alert("Nombre de usuario ya existente. Por favor eliga un nombre diferente.");
-        return;
-    }
-
-    users.push({ username, password: hashedPassword });
-    localStorage.setItem('users', JSON.stringify(users));
-
-    alert("usuario creado correctamente! Por favor inicie sesión.");
-}
-
-function login() {
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
-
-    if (!username || !password) {
-        alert("Por favor ingrese un nombre de usuario y contraseña.");
-        return;
-    }
-
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(user => user.username === username);
-
-    const hashedPassword = CryptoJS.SHA256(password).toString();
-
-    if (user && user.password === hashedPassword) {
-        alert("Sesión inciada correctamente!");
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        checkLogin(); // Force reload of user-specific data
-    } else {
-        alert("Nombre de usuario o contraseña invalidos.");
-    }
-}
-
-
-
 
 
 function openModal() {
@@ -711,30 +657,7 @@ function closeModal() {
 document.addEventListener("DOMContentLoaded", checkLogin);
 
 // Example login function (using CryptoJS)
-async function login() {
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
 
-    if (!username || !password) {
-        alert("Por favor ingrese un nombre de usuario y contraseña.");
-        return;
-    }
-
-    // Check if the user exists
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(user => user.username === username);
-
-    // Hash the input password and compare
-    const hashedPassword = CryptoJS.SHA256(password).toString();
-
-    if (user && user.password === hashedPassword) {
-        alert("Sesión inciada correctamente!");
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        checkLogin(); // Update the UI
-    } else {
-        alert("Nombre de usuario o contraseña invalidos.");
-    }
-}
 
 
 function removeUser() {
@@ -786,9 +709,3 @@ function checkSavingsGoalAfterReset(previousGoal, previousTotal) {
             alert("No se realizaron ahorros el mes pasado.");
         }
     }
-}
-
-
-
-console.log("Before reset - Savings Goal:", previousGoal);
-console.log("Before reset - Total Expenses:", previousTotal);
