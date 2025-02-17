@@ -709,3 +709,4 @@ function checkSavingsGoalAfterReset(previousGoal, previousTotal) {
             alert("No se realizaron ahorros el mes pasado.");
         }
     }
+}
