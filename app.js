@@ -246,40 +246,23 @@ function checkAndNotifyMonthlyReset() {
         const lastResetYear = lastReset.getFullYear();
 
         if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
-            // Notify the user that the monthly reset has occurred
+            // Retrieve savings goal and total BEFORE resetting data
+            const previousGoal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
+            const previousTotal = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
+
+            // Notify user and reset data
             notifyUser("Reseteo mensual", "Sus gastos y presupuestos mensuales se han reseteado");
 
-            // Reset the data
+            // Reset data
             localStorage.removeItem(getUserKey('monthlyBudget'));
-            localStorage.removeItem(getUserKey('savingsGoal'));
+            localStorage.removeItem(getUserKey('savingsGoal')); // Still reset the goal for the new month
             localStorage.removeItem(getUserKey('expenses'));
             localStorage.removeItem(getUserKey('goals'));
 
-            localStorage.setItem("lastResetDate", currentDate.toISOString());
+            // ... (rest of the reset code)
 
-            // Reset the warning flags
-            hasShownLowBudgetWarning = false;
-            hasShownBudgetDepletedWarning = false;
-
-            document.getElementById("totalExpenses").textContent = "$0";
-            document.getElementById("savingsGoal").textContent = "$0";
-            document.getElementById("remainingBudget").textContent = "$0";
-            document.getElementById("progress").style.width = "0%";
-            document.getElementById("progress").style.background = "red";
-
-            const categories = ["Food", "Rent", "Entertainment", "Transport", "Other"];
-            categories.forEach(category => {
-                document.getElementById(`expenses${category}`).innerHTML = "";
-            });
-
-            document.getElementById("goalsList").innerHTML = "";
-
-            // Update the progress bar and remaining budget after resetting data
-            updateProgressBar();
-            updateRemainingBudget();
-
-            // Check if the savings goal was achieved during the previous month
-            checkSavingsGoalAfterReset(); // Ensure this is called
+            // Check the previous month's goal and total
+            checkSavingsGoalAfterReset(previousGoal, previousTotal); // Pass values to the function
         }
     } else {
         localStorage.setItem("lastResetDate", currentDate.toISOString());
@@ -771,48 +754,27 @@ function removeUser() {
 console.log("Current User Key:", getUserKey('expenses'));
 console.log("Expenses in localStorage:", JSON.parse(localStorage.getItem(getUserKey('expenses'))));
 
-function checkSavingsGoalAfterReset() {
-    const goal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
-    const total = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
-
-    console.log("Goal:", goal);
-    console.log("Total Expenses:", total);
-
-    // Skip if no goal is set
-    if (goal === 0) {
-        console.log("No savings goal set.");
+function checkSavingsGoalAfterReset(previousGoal, previousTotal) {
+    // Skip if no goal was set last month
+    if (previousGoal === 0) {
+        console.log("No savings goal set last month.");
         return;
     }
 
-    // Check if the savings goal was achieved
-    if (total >= goal && !hasShownSavingsMessage) {
-        console.log("Goal reached!");
-        alert("¡Has alcanzado tu meta de ahorro!");
-        hasShownSavingsMessage = true; // Prevent repeated notifications
+    // Check if the savings goal was achieved last month
+    if (previousTotal >= previousGoal) {
+        alert("¡Has alcanzado tu meta de ahorro del mes anterior!");
     } else {
-        // Get the progress percentage from the progress bar width
-        const progressBar = document.getElementById("progress");
-        const progressWidth = parseFloat(progressBar.style.width); // e.g., "50%" -> 50
-
-        console.log("Progress Width:", progressWidth);
-
-        // Determine the message based on the progress percentage
-        if (progressWidth >= 75 && !hasShownSavingsMessage) {
-            console.log("Progress >= 75%");
-            alert("¡Casi llegas a tu meta de ahorro!");
-            hasShownSavingsMessage = true;
-        } else if (progressWidth >= 25 && !hasShownSavingsMessage) {
-            console.log("Progress >= 25%");
-            alert("Vas por buen camino, pero aún te falta.");
-            hasShownSavingsMessage = true;
-        } else if (progressWidth > 0 && !hasShownSavingsMessage) {
-            console.log("Progress > 0%");
-            alert("Muy pocos ahorros realizados este mes.");
-            hasShownSavingsMessage = true;
-        } else if (!hasShownSavingsMessage) {
-            console.log("Progress = 0%");
-            alert("No se realizaron ahorros este mes. ¡El próximo mes será mejor!");
-            hasShownSavingsMessage = true;
+        // Calculate progress based on last month's data
+        const progress = (previousTotal / previousGoal) * 100;
+        if (progress >= 75) {
+            alert("¡Casi llegaste a tu meta de ahorro el mes pasado!");
+        } else if (progress >= 25) {
+            alert("Vas por buen camino, pero aún te faltó el mes pasado.");
+        } else if (progress > 0) {
+            alert("Muy pocos ahorros realizados el mes pasado.");
+        } else {
+            alert("No se realizaron ahorros el mes pasado.");
         }
     }
 }
