@@ -92,8 +92,9 @@ function setSavingsGoal() {
     localStorage.setItem("lastResetDate", new Date().toISOString()); // Update the last reset date
 
     document.getElementById("savingsGoal").textContent = `$${goal}`;
-    // Remove the checkGoal() call here to prevent the message from appearing immediately
+    updateProgressBar(); // Ensure the progress bar is updated
 }
+
 
 function checkGoal() {
     let goal = parseFloat(localStorage.getItem("savingsGoal")) || 0;
@@ -278,7 +279,7 @@ function checkAndNotifyMonthlyReset() {
             updateRemainingBudget();
 
             // Check if the savings goal was achieved during the previous month
-            checkSavingsGoalAfterReset();
+            checkSavingsGoalAfterReset(); // Ensure this is called
         }
     } else {
         localStorage.setItem("lastResetDate", currentDate.toISOString());
@@ -784,9 +785,10 @@ function checkSavingsGoalAfterReset() {
     }
 
     // Check if the savings goal was achieved
-    if (total >= goal) {
+    if (total >= goal && !hasShownSavingsMessage) {
         console.log("Goal reached!");
         alert("¡Has alcanzado tu meta de ahorro!");
+        hasShownSavingsMessage = true; // Prevent repeated notifications
     } else {
         // Get the progress percentage from the progress bar width
         const progressBar = document.getElementById("progress");
@@ -795,18 +797,22 @@ function checkSavingsGoalAfterReset() {
         console.log("Progress Width:", progressWidth);
 
         // Determine the message based on the progress percentage
-        if (progressWidth >= 75) {
+        if (progressWidth >= 75 && !hasShownSavingsMessage) {
             console.log("Progress >= 75%");
             alert("¡Casi llegas a tu meta de ahorro!");
-        } else if (progressWidth >= 25) {
+            hasShownSavingsMessage = true;
+        } else if (progressWidth >= 25 && !hasShownSavingsMessage) {
             console.log("Progress >= 25%");
             alert("Vas por buen camino, pero aún te falta.");
-        } else if (progressWidth > 0) {
+            hasShownSavingsMessage = true;
+        } else if (progressWidth > 0 && !hasShownSavingsMessage) {
             console.log("Progress > 0%");
             alert("Muy pocos ahorros realizados este mes.");
-        } else {
+            hasShownSavingsMessage = true;
+        } else if (!hasShownSavingsMessage) {
             console.log("Progress = 0%");
             alert("No se realizaron ahorros este mes. ¡El próximo mes será mejor!");
+            hasShownSavingsMessage = true;
         }
     }
 }
