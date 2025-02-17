@@ -1,0 +1,22 @@
+{
+  "short_name": "GestorProyecto",
+  "name": "Gestor de Proyectos",
+  "description": "Una aplicación para gestionar proyectos.",
+  "icons": [
+    {
+      "src": "huchita.png",
+      "type": "image/png",
+      "sizes": "128x128"
+    },
+    {
+      "src": "hucha.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/Gestor-proyecto/proyecto.html",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/Gestor-proyecto/",
+  "theme_color": "#000000"
+}
