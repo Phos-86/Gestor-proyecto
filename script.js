@@ -35,15 +35,3 @@ window.addEventListener('appinstalled', (event) => {
         installButton.style.display = 'none';
     }
 });
-
-if ('getInstalledRelatedApps' in window) {
-    window.getInstalledRelatedApps().then((apps) => {
-        if (apps.length > 0) {
-            console.log('App is already installed');
-            const installButton = document.getElementById('install-button');
-            if (installButton) {
-                installButton.style.display = 'none';
-            }
-        }
-    });
-}

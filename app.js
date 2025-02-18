@@ -266,7 +266,6 @@ function checkAndNotifyMonthlyReset(simulatedDate, isSimulation = false) {
             localStorage.removeItem(getUserKey('monthlyBudget'));
             localStorage.removeItem(getUserKey('savingsGoal'));
             localStorage.removeItem(getUserKey('expenses'));
-            localStorage.removeItem(getUserKey('goals'));
 
             // Update lastResetDate ONLY if it's NOT a simulation
             if (!isSimulation) {
@@ -278,6 +277,7 @@ function checkAndNotifyMonthlyReset(simulatedDate, isSimulation = false) {
             updateTotalExpenses();
             updateRemainingBudget();
             updateProgressBar();
+            reloadGoals();
 
             // Check savings goal based on remaining budget
             checkSavingsGoalAfterReset(previousGoal, remainingBudget);
@@ -355,6 +355,7 @@ function checkAndResetMonthlyData() {
             updateTotalExpenses();
             updateRemainingBudget();
             updateProgressBar();
+            reloadGoals();
 
             // Check savings goal based on remaining budget
             checkSavingsGoalAfterReset(previousGoal, remainingBudget);
@@ -739,4 +740,10 @@ function checkSavingsGoalAfterReset(previousGoal, previousRemainingBudget) {
             alert("No se realizaron ahorros el mes pasado.");
         }
     }
+}
+
+function reloadGoals() {
+    const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
+    document.getElementById("goalsList").innerHTML = "";
+    goals.forEach(goal => addGoalToDOM(goal));
 }
