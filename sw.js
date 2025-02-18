@@ -1,10 +1,9 @@
 const CACHE_NAME = 'gestor-proyecto-v1';
 const ASSETS = [
   '/Gestor-proyecto/proyecto.html',
-  '/Gestor-proyecto/styles.css',
   '/Gestor-proyecto/script.js',
-  '/Gestor-proyecto/icon-192x192.png',
-  '/Gestor-proyecto/icon-512x512.png'
+  '/Gestor-proyecto/huchita.png',
+  '/Gestor-proyecto/hucha.png'
 ];
 
 self.addEventListener('install', (event) => {
