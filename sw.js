@@ -1,7 +1,9 @@
 const CACHE_NAME = 'gestor-proyecto-v1';
-const ASSETS = [
-  '/Gestor-proyecto/proyecto.html',
-  '/Gestor-proyecto/script.js',
+const urlsToCache = [
+  '/Gestor-proyecto/',
+  '/Gestor-proyecto/index.html',
+  '/Gestor-proyecto/app.js',
+  '/Gestor-proyecto/manifest.json',
   '/Gestor-proyecto/huchita.png',
   '/Gestor-proyecto/hucha.png'
 ];
