@@ -330,11 +330,10 @@ function checkAndResetMonthlyData() {
             localStorage.setItem(getUserKey('previousGoal'), previousGoal);
             localStorage.setItem(getUserKey('previousRemainingBudget'), remainingBudget);
 
-            // Reset all data
+            // Reset data EXCEPT goals
             localStorage.removeItem(getUserKey('monthlyBudget'));
             localStorage.removeItem(getUserKey('savingsGoal'));
             localStorage.removeItem(getUserKey('expenses'));
-            localStorage.removeItem(getUserKey('goals'));
 
             // Update reset date
             localStorage.setItem("lastResetDate", currentDate.toISOString());
@@ -350,8 +349,6 @@ function checkAndResetMonthlyData() {
             ["Food", "Rent", "Entertainment", "Transport", "Other"].forEach(category => {
                 document.getElementById(`expenses${category}`).innerHTML = "";
             });
-
-            document.getElementById("goalsList").innerHTML = "";
 
             // Ensure UI is refreshed
             loadExpenses();
