@@ -368,28 +368,8 @@ html, body {
 </head>
 <body>
     <h1>Bienvenido al Gestor de Proyectos</h1>
-  <button id="install-button">Instalar App</button>
-
-  <script>
-    window.addEventListener('beforeinstallprompt', (event) => {
-      event.preventDefault();
-      const installPrompt = event;
-      // Show a custom "Add to Home Screen" button
-      const installButton = document.getElementById('install-button');
-      installButton.style.display = 'block';
-      installButton.addEventListener('click', () => {
-        installPrompt.prompt();
-        installPrompt.userChoice.then((choice) => {
-          if (choice.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-          } else {
-            console.log('User dismissed the install prompt');
-          }
-          installButton.style.display = 'none';
-        });
-      });
-    });
-  </script>
+  <button id="install-button" style="display: none;">Instalar App</button>
+  <script src="script.js"></script>
 <nav>
         <a href="#gasto">Gastos</a>
         <a href="#metas">Metas</a>
@@ -474,7 +454,6 @@ html, body {
 </div>
 <button id="backToTopBtn" title="Go to top">↑</button>
     <script src="app.js"></script>
-    <script src="script.js"></script>
     <link rel="manifest" href="/Gestor-proyecto/manifest.json">
     <script>
 if ('serviceWorker' in navigator) {
