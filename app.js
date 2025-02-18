@@ -564,8 +564,13 @@ function signup() {
         return;
     }
 
-    users.push({ username, password: hashedPassword });
+
+ users.push({ username, password: hashedPassword });
     localStorage.setItem('users', JSON.stringify(users));
+     localStorage.setItem('currentUser', JSON.stringify({ username, password: hashedPassword }));
+    alert("¡Cuenta creada! Sesión iniciada automáticamente.");
+    closeModal();
+    checkLogin();  
     alert("¡Cuenta creada! Inicie sesión.");
     closeModal();
 }
