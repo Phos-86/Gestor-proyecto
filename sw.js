@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gestor-proyecto-v1';
+const CACHE_NAME = 'gestor';
 const urlsToCache = [
   '/Gestor-proyecto/',
   '/Gestor-proyecto/index.html',
@@ -11,7 +11,7 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(gestor-proyecto-v1))
+      .then((cache) => cache.addAll(gestor))
   );
 });
 
