@@ -28,15 +28,18 @@ function addExpense() {
 function removeExpenseFromStorage(id) {
     const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
     const expenseToDelete = savedExpenses.find(expense => expense.id === id);
-    lastDeletedExpense = expenseToDelete; // Store the deleted expense
 
-    const filteredExpenses = savedExpenses.filter(expense => expense.id !== id);
-    localStorage.setItem(getUserKey('expenses'), JSON.stringify(filteredExpenses));
+    if (expenseToDelete) {
+        const filteredExpenses = savedExpenses.filter(expense => expense.id !== id);
+        localStorage.setItem(getUserKey('expenses'), JSON.stringify(filteredExpenses));
 
-    updateTotalExpenses();
-    updateRemainingBudget();
-    updateProgressBar();
-    showUndoButton();
+        // Add the deleted expense to the queue
+        addToDeletionQueue(expenseToDelete, 'expense');
+
+        updateTotalExpenses();
+        updateRemainingBudget();
+        updateProgressBar();
+    }
 }
 
 document.addEventListener("DOMContentLoaded", loadExpenses);
@@ -487,33 +490,36 @@ function addToGoal(goalId) {
 function removeGoal(goalId, keepSavings = false) {
     const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
     const goalToDelete = goals.find(g => g.id === goalId);
-    lastDeletedGoal = goalToDelete; // Store the deleted goal
 
-    const updatedGoals = goals.filter(g => g.id !== goalId);
-    localStorage.setItem(getUserKey('goals'), JSON.stringify(updatedGoals));
+    if (goalToDelete) {
+        const updatedGoals = goals.filter(g => g.id !== goalId);
+        localStorage.setItem(getUserKey('goals'), JSON.stringify(updatedGoals));
 
-    // Remove the goal from the DOM
-    const goalItem = document.querySelector(`#goalsList .goal-item`);
-    if (goalItem) {
-        goalItem.remove();
+        // Add the deleted goal to the queue
+        addToDeletionQueue(goalToDelete, 'goal');
+
+        // Remove the goal from the DOM
+        const goalItem = document.querySelector(`#goalsList .goal-item`);
+        if (goalItem) {
+            goalItem.remove();
+        }
+
+        // Only remove savings expenses if keepSavings is false
+        if (!keepSavings) {
+            const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
+            const filteredExpenses = savedExpenses.filter(expense => {
+                if (expense.category === "Savings" && expense.description.includes(goalToDelete.description)) {
+                    return false; // Exclude this expense
+                }
+                return true;
+            });
+            localStorage.setItem(getUserKey('expenses'), JSON.stringify(filteredExpenses));
+        }
+
+        updateTotalExpenses();
+        updateRemainingBudget();
+        updateProgressBar();
     }
-
-    // Only remove savings expenses if keepSavings is false
-    if (!keepSavings) {
-        const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
-        const filteredExpenses = savedExpenses.filter(expense => {
-            if (expense.category === "Savings" && expense.description.includes(goalToDelete.description)) {
-                return false; // Exclude this expense
-            }
-            return true;
-        });
-        localStorage.setItem(getUserKey('expenses'), JSON.stringify(filteredExpenses));
-    }
-
-    updateTotalExpenses();
-    updateRemainingBudget();
-    updateProgressBar();
-    showUndoButton();
 }
 
 // Get the button
@@ -826,15 +832,63 @@ function showUndoButton() {
     undoButton.style.animation = 'slideIn 0.5s ease-out, bounce 1s 2'; // Slide in and bounce
 
     // Play sound effect
+    const undoSound = new Audio('/Gestor-proyecto/sounds/ding.mp3');
     undoSound.play().catch(error => {
         console.error("Failed to play undo sound:", error);
     });
 
+    // Reset the timer
+    if (undoTimeout) {
+        clearTimeout(undoTimeout); // Clear the existing timer
+    }
+
     // Hide the button after 5 seconds
-    setTimeout(() => {
+    undoTimeout = setTimeout(() => {
         undoButton.style.animation = 'fadeOut 0.5s ease-out'; // Fade out
         setTimeout(() => {
             undoButton.style.display = 'none'; // Hide after fade-out
+            deletionQueue = []; // Clear the queue
         }, 500); // Wait for fade-out animation to finish
     }, 5000); // 5 seconds
+}
+
+let deletionQueue = []; // Queue to track deleted items
+let undoTimeout = null; // Timer for the Undo button
+
+function addToDeletionQueue(item, type) {
+    deletionQueue.push({ item, type }); // Add the deleted item to the queue
+    showUndoButton(); // Show or reset the Undo button
+}
+
+function undoLastDelete() {
+    if (deletionQueue.length === 0) return; // Nothing to undo
+
+    const lastDeletion = deletionQueue.pop(); // Get the most recent deletion
+    const { item, type } = lastDeletion;
+
+    if (type === 'expense') {
+        // Undo expense deletion
+        const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
+        savedExpenses.push(item);
+        localStorage.setItem(getUserKey('expenses'), JSON.stringify(savedExpenses));
+        addExpenseToDOM(item);
+    } else if (type === 'goal') {
+        // Undo goal deletion
+        const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
+        goals.push(item);
+        localStorage.setItem(getUserKey('goals'), JSON.stringify(goals));
+        addGoalToDOM(item);
+    }
+
+    // Update the UI
+    updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar();
+
+    // If there are more items in the queue, reset the timer
+    if (deletionQueue.length > 0) {
+        showUndoButton();
+    } else {
+        document.getElementById('undoButton').style.display = 'none';
+    }
 }
