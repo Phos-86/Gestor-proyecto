@@ -213,6 +213,7 @@ function updateRemainingBudget() {
         if (remaining > 0 && remaining <= lowBudgetThreshold) {
             if (!hasShownLowBudgetWarning) {
                 alert("¡Advertencia! Tu presupuesto está bajo. Te quedan $" + remaining.toFixed(2) + ".");
+                sendNotification('Advertencia de Presupuesto', 'Tu presupuesto se está acabando!');
                 hasShownLowBudgetWarning = true; // Set the flag to true to prevent repeated warnings
             }
         } else {
@@ -224,6 +225,7 @@ function updateRemainingBudget() {
         if (remaining <= 0) {
             if (!hasShownBudgetDepletedWarning) {
                 alert("¡Advertencia! Tu presupuesto se ha agotado.");
+                sendNotification('Presupuesto agotado', 'Tu presupuesto se ha agotado!');
                 hasShownBudgetDepletedWarning = true; // Set the flag to true to prevent repeated warnings
             }
         } else {
@@ -429,6 +431,7 @@ function addGoalToDOM(goal) {
     `;
     goalsList.appendChild(goalItem);
 }
+
 function addToGoal(goalId) {
     const amountToAdd = parseFloat(document.getElementById(`addToGoal${goalId}`).value);
     if (isNaN(amountToAdd) || amountToAdd <= 0) {
@@ -478,9 +481,10 @@ function addToGoal(goalId) {
     // Check if the goal is reached
     if (goal.currentAmount >= goal.amount) {
         alert(`¡Felicidades! Has alcanzado tu meta de ${goal.description}.`);
+        sendNotification('Meta alcanzada', `Felicidades! Haz alcanzado tu meta: ${goal.description}.`);
 
         // Remove the goal after completion (DO NOT add it to the deletion queue)
-        removeGoal(goalId, true, false); // Pass `true` to keep savings expenses
+        removeGoal(goalId, true, false); // Pass `false` for addToQueue
 
         // Trigger confetti
         confetti({
