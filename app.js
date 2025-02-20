@@ -433,6 +433,7 @@ function addToGoal(goalId) {
     const amountToAdd = parseFloat(document.getElementById(`addToGoal${goalId}`).value);
     if (isNaN(amountToAdd) || amountToAdd <= 0) {
         alert("Por favor, ingresa un monto válido.");
+        playFailureSound(); // Play failure sound for invalid input
         return;
     }
 
@@ -440,11 +441,13 @@ function addToGoal(goalId) {
     const goal = goals.find(g => g.id === goalId);
     if (!goal) {
         alert("Meta no encontrada.");
+        playFailureSound(); // Play failure sound for goal not found
         return;
     }
 
     if (goal.currentAmount + amountToAdd > goal.amount) {
         alert("No puedes añadir más de lo necesario para alcanzar la meta.");
+        playFailureSound(); // Play failure sound for exceeding the goal
         return;
     }
 
@@ -475,19 +478,23 @@ function addToGoal(goalId) {
     // Check if the goal is reached
     if (goal.currentAmount >= goal.amount) {
         alert(`¡Felicidades! Has alcanzado tu meta de ${goal.description}.`);
-        removeGoal(goalId, true); // Remove the goal after completion
+
+        // Remove the goal after completion (DO NOT add it to the deletion queue)
+        removeGoal(goalId, true, false); // Pass `true` to keep savings expenses
 
         // Trigger confetti
         confetti({
-            particleCount: 250,
-            spread: 200,
+            particleCount: 100,
+            spread: 70,
             origin: { y: 0.6 }
         });
-                playSuccessSound();    
+
+        // Play success sound
+        playSuccessSound();
     }
 }
 
-function removeGoal(goalId, keepSavings = false) {
+function removeGoal(goalId, keepSavings = false, addToQueue = true) {
     const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
     const goalToDelete = goals.find(g => g.id === goalId);
 
@@ -495,8 +502,10 @@ function removeGoal(goalId, keepSavings = false) {
         const updatedGoals = goals.filter(g => g.id !== goalId);
         localStorage.setItem(getUserKey('goals'), JSON.stringify(updatedGoals));
 
-        // Add the deleted goal to the queue
-        addToDeletionQueue(goalToDelete, 'goal');
+        // Add the deleted goal to the queue ONLY if addToQueue is true
+        if (addToQueue) {
+            addToDeletionQueue(goalToDelete, 'goal');
+        }
 
         // Remove the goal from the DOM
         const goalItem = document.querySelector(`#goalsList .goal-item`);
