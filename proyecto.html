@@ -366,11 +366,12 @@ html, body {
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <link rel="manifest" href="/Gestor-proyecto/manifest.json">
-        <script src="script.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 <nav>
-    <h1>Bienvenido al Gestor Financiero</h1>
+    <h1>Bienvenido al Gestor de Proyectos</h1>
     <center><button id="install-button" style="display: none;">Instalar App</button></center>
         <a href="#gasto">Gastos</a>
         <a href="#metas">Metas</a>
@@ -448,7 +449,6 @@ html, body {
 </div>
 <div id="savingsProgress">
     <h3>Progreso de Ahorro</h3>
-    <button onclick="updateProgressBar()">Actualizar</button>
     <div id="progressBar" style="width: 100%; background-color: #ddd;">
         <div id="progress" style="width: 0%; height: 30px;"></div>
     </div>

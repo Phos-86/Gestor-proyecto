@@ -102,6 +102,17 @@ function checkGoal() {
 
     if (total >= goal) {
         alert("¡Has alcanzado tu meta de ahorro!");
+
+        // Trigger confetti
+        confetti({
+            particleCount: 250,
+            spread: 200,
+            origin: { y: 0.6 }
+        });
+        playSuccessSound();
+    } else {
+        // Play failure sound if the goal is not reached
+        playFailureSound();
     }
 }
 
@@ -279,6 +290,12 @@ function checkAndNotifyMonthlyReset(simulatedDate, isSimulation = false) {
             updateProgressBar();
             reloadGoals();
 
+            // Clear the savings goal input field
+            document.getElementById("savingsGoalInput").value = "";
+
+            // Update the savings goal display in the dashboard
+            document.getElementById("savingsGoal").textContent = "$0";
+
             // Check savings goal based on remaining budget
             checkSavingsGoalAfterReset(previousGoal, remainingBudget);
         }
@@ -452,6 +469,14 @@ function addToGoal(goalId) {
     if (goal.currentAmount >= goal.amount) {
         alert(`¡Felicidades! Has alcanzado tu meta de ${goal.description}.`);
         removeGoal(goalId, true); // Remove the goal after completion
+
+        // Trigger confetti
+        confetti({
+            particleCount: 250,
+            spread: 200,
+            origin: { y: 0.6 }
+        });
+                playSuccessSound();    
     }
 }
 
@@ -716,6 +741,8 @@ function removeUser() {
 console.log("Current User Key:", getUserKey('expenses'));
 console.log("Expenses in localStorage:", JSON.parse(localStorage.getItem(getUserKey('expenses'))));
 
+
+
 function checkSavingsGoalAfterReset(previousGoal, previousRemainingBudget) {
     console.log("checkSavingsGoalAfterReset called");
     console.log("Previous Goal:", previousGoal);
@@ -728,16 +755,26 @@ function checkSavingsGoalAfterReset(previousGoal, previousRemainingBudget) {
 
     if (previousRemainingBudget >= previousGoal) {
         alert("¡Has alcanzado tu meta de ahorro del mes anterior!");
+        confetti({
+            particleCount: 250,
+            spread: 200,
+            origin: { y: 0.6 }
+        });
+    playSuccessSound();
     } else {
         const progress = (previousRemainingBudget / previousGoal) * 100;
         if (progress >= 75) {
             alert("¡Casi llegaste a tu meta de ahorro el mes pasado!");
+            playSuccessSound();
         } else if (progress >= 25) {
             alert("Vas por buen camino, pero aún te faltó el mes pasado.");
+            playFailureSound();
         } else if (progress > 0) {
             alert("Muy pocos ahorros realizados el mes pasado.");
+playFailureSound();
         } else {
             alert("No se realizaron ahorros el mes pasado.");
+            playFailureSound();
         }
     }
 }
@@ -746,4 +783,19 @@ function reloadGoals() {
     const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
     document.getElementById("goalsList").innerHTML = "";
     goals.forEach(goal => addGoalToDOM(goal));
+}
+
+const successSound = new Audio('/success.wav');
+const failureSound = new Audio('/failure.mp3');
+
+function playSuccessSound() {
+    successSound.play().catch(error => {
+        console.error("Failed to play success sound:", error);
+    });
+}
+
+function playFailureSound() {
+    failureSound.play().catch(error => {
+        console.error("Failed to play failure sound:", error);
+    });
 }
