@@ -355,6 +355,42 @@ html, body {
     pointer-events: none;
     opacity: 0.5;
 }
+#undoButton {
+    display: none; /* Hidden by default */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1000; /* Ensure it's above other elements */
+    animation: slideIn 0.5s ease-out; /* Animation when it appears */
+}
+
+/* Slide-in animation */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Fade-out animation */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
 </style>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -444,7 +480,8 @@ html, body {
     <h3>Metas Adicionales</h3>
     <input type="text" id="goalDescription" placeholder="Descripción de la meta">
     <input type="number" id="goalAmount" placeholder="Cantidad">
-    <button onclick="addGoal()">Añadir Meta</button>
+    <button id="undoButton" style="display: none;" onclick="undoLastDelete()">Deshacer</button>
+<button onclick="addGoal()">Añadir Meta</button><button id="undoButton" style="display: none;" onclick="undoLastDelete()">Deshacer</button>
     <div id="goalsList"></div>
 </div>
 <div id="savingsProgress">

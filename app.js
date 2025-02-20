@@ -27,14 +27,18 @@ function addExpense() {
 }
 function removeExpenseFromStorage(id) {
     const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
+    const expenseToDelete = savedExpenses.find(expense => expense.id === id);
+    lastDeletedExpense = expenseToDelete; // Store the deleted expense
+
     const filteredExpenses = savedExpenses.filter(expense => expense.id !== id);
     localStorage.setItem(getUserKey('expenses'), JSON.stringify(filteredExpenses));
 
-    // Update the UI
     updateTotalExpenses();
     updateRemainingBudget();
     updateProgressBar();
+    showUndoButton();
 }
+
 document.addEventListener("DOMContentLoaded", loadExpenses);
 
 function loadExpenses() {
@@ -481,15 +485,10 @@ function addToGoal(goalId) {
 }
 
 function removeGoal(goalId, keepSavings = false) {
-    // Find the goal to get its description
     const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
-    const goal = goals.find(g => g.id === goalId);
-    if (!goal) {
-        console.error("Goal not found.");
-        return;
-    }
+    const goalToDelete = goals.find(g => g.id === goalId);
+    lastDeletedGoal = goalToDelete; // Store the deleted goal
 
-    // Remove the goal from the goals array
     const updatedGoals = goals.filter(g => g.id !== goalId);
     localStorage.setItem(getUserKey('goals'), JSON.stringify(updatedGoals));
 
@@ -503,26 +502,18 @@ function removeGoal(goalId, keepSavings = false) {
     if (!keepSavings) {
         const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
         const filteredExpenses = savedExpenses.filter(expense => {
-            // Check if the expense is related to the goal
-            if (expense.category === "Savings" && expense.description.includes(goal.description)) {
-                // Remove the expense from the DOM
-                const expenseItem = document.querySelector(`#expensesSavings li[data-id="${expense.id}"]`);
-                if (expenseItem) {
-                    expenseItem.remove();
-                }
-                return false; // Exclude this expense from the filtered list
+            if (expense.category === "Savings" && expense.description.includes(goalToDelete.description)) {
+                return false; // Exclude this expense
             }
-            return true; // Keep this expense in the filtered list
+            return true;
         });
-
-        // Update localStorage with the filtered expenses
         localStorage.setItem(getUserKey('expenses'), JSON.stringify(filteredExpenses));
     }
 
-    // Update the total expenses and remaining budget
     updateTotalExpenses();
     updateRemainingBudget();
     updateProgressBar();
+    showUndoButton();
 }
 
 // Get the button
@@ -798,4 +789,52 @@ function playFailureSound() {
     failureSound.play().catch(error => {
         console.error("Failed to play failure sound:", error);
     });
+}
+
+let lastDeletedExpense = null;
+let lastDeletedGoal = null;
+
+function undoLastDelete() {
+    if (lastDeletedExpense) {
+        const savedExpenses = JSON.parse(localStorage.getItem(getUserKey('expenses'))) || [];
+        savedExpenses.push(lastDeletedExpense);
+        localStorage.setItem(getUserKey('expenses'), JSON.stringify(savedExpenses));
+        addExpenseToDOM(lastDeletedExpense);
+        lastDeletedExpense = null;
+    }
+
+    if (lastDeletedGoal) {
+        const goals = JSON.parse(localStorage.getItem(getUserKey('goals'))) || [];
+        goals.push(lastDeletedGoal);
+        localStorage.setItem(getUserKey('goals'), JSON.stringify(goals));
+        addGoalToDOM(lastDeletedGoal);
+        lastDeletedGoal = null;
+    }
+
+    document.getElementById('undoButton').style.display = 'none';
+    updateTotalExpenses();
+    updateRemainingBudget();
+    updateProgressBar();
+}
+
+// Show the Undo button after a deletion
+const undoSound = new Audio('/Gestor-proyecto/sounds/ding.mp3');
+
+function showUndoButton() {
+    const undoButton = document.getElementById('undoButton');
+    undoButton.style.display = 'block';
+    undoButton.style.animation = 'slideIn 0.5s ease-out, bounce 1s 2'; // Slide in and bounce
+
+    // Play sound effect
+    undoSound.play().catch(error => {
+        console.error("Failed to play undo sound:", error);
+    });
+
+    // Hide the button after 5 seconds
+    setTimeout(() => {
+        undoButton.style.animation = 'fadeOut 0.5s ease-out'; // Fade out
+        setTimeout(() => {
+            undoButton.style.display = 'none'; // Hide after fade-out
+        }, 500); // Wait for fade-out animation to finish
+    }, 5000); // 5 seconds
 }
