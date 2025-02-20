@@ -818,7 +818,7 @@ function undoLastDelete() {
 }
 
 // Show the Undo button after a deletion
-const undoSound = new Audio('/Gestor-proyecto/sounds/ding.mp3');
+const undoSound = new Audio('/Gestor-proyecto/sounds/ding.wav');
 
 function showUndoButton() {
     const undoButton = document.getElementById('undoButton');
