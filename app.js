@@ -832,7 +832,7 @@ function showUndoButton() {
     undoButton.style.animation = 'slideIn 0.5s ease-out, bounce 1s 2'; // Slide in and bounce
 
     // Play sound effect
-    const undoSound = new Audio('/Gestor-proyecto/sounds/ding.mp3');
+    const undoSound = new Audio('/Gestor-proyecto/sounds/ding.wav');
     undoSound.play().catch(error => {
         console.error("Failed to play undo sound:", error);
     });
@@ -891,4 +891,34 @@ function undoLastDelete() {
     } else {
         document.getElementById('undoButton').style.display = 'none';
     }
+}
+
+function requestNotificationPermission() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log('Notification permission granted.');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', requestNotificationPermission);
+
+function sendNotification(title, message) {
+    if (Notification.permission === 'granted') {
+        new Notification(title, { body: message });
+    } else {
+        console.warn('Permisos de notificacion concedidos.');
+    }
+}
+
+// Example: Notify when budget is low
+if (remainingBudget <= lowBudgetThreshold) {
+    sendNotification('Alerta de presupuesto', 'Te queda poco presupuesto!');
+}
+
+// Example: Notify when a goal is reached
+if (goal.currentAmount >= goal.amount) {
+    sendNotification('Meta alcanzada', `¡Felicidades! Haz alcanzado tu meta: ${goal.description}.`);
 }
