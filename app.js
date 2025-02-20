@@ -785,8 +785,8 @@ function reloadGoals() {
     goals.forEach(goal => addGoalToDOM(goal));
 }
 
-const successSound = new Audio('/success.wav');
-const failureSound = new Audio('/failure.mp3');
+const successSound = new Audio('/sounds/success.wav');
+const failureSound = new Audio('/sounds/failure.mp3');
 
 function playSuccessSound() {
     successSound.play().catch(error => {
