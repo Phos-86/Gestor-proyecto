@@ -12,3 +12,17 @@ self.addEventListener('fetch', (event) => {
     console.log('Fetching:', event.request.url);
     // Add fetch event handling logic here
 });
+
+self.addEventListener('push', (event) => {
+    const data = event.data.json();
+    const title = data.title;
+    const options = {
+        body: data.message,
+        icon: 'huchita.png', // Path to your notification icon
+        badge: 'hucha.png' // Path to your badge icon
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
