@@ -337,7 +337,6 @@ function checkAndResetMonthlyData() {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
-
     const lastResetDate = localStorage.getItem("lastResetDate");
 
     if (lastResetDate) {
@@ -346,50 +345,46 @@ function checkAndResetMonthlyData() {
         const lastResetYear = lastReset.getFullYear();
 
         if (currentMonth !== lastResetMonth || currentYear !== lastResetYear) {
-            // Calculate the remaining budget before resetting
+            sendNotification('Reinicio Mensual', 'Tus datos financieros han sido reiniciados para este mes.');
+
+            // Existing reset logic
             const budget = parseFloat(localStorage.getItem(getUserKey('monthlyBudget'))) || 0;
             const totalExpenses = parseFloat(document.getElementById("totalExpenses").textContent.replace("$", "")) || 0;
             const remainingBudget = budget - totalExpenses;
 
-            // Save previous goal and remaining budget before resetting
             const previousGoal = parseFloat(localStorage.getItem(getUserKey('savingsGoal'))) || 0;
             localStorage.setItem(getUserKey('previousGoal'), previousGoal);
             localStorage.setItem(getUserKey('previousRemainingBudget'), remainingBudget);
 
-            // Reset data EXCEPT goals
             localStorage.removeItem(getUserKey('monthlyBudget'));
             localStorage.removeItem(getUserKey('savingsGoal'));
             localStorage.removeItem(getUserKey('expenses'));
 
-            // Update reset date
             localStorage.setItem("lastResetDate", currentDate.toISOString());
 
-            // Reset UI values
             document.getElementById("totalExpenses").textContent = "$0";
             document.getElementById("savingsGoal").textContent = "$0";
             document.getElementById("remainingBudget").textContent = "$0";
             document.getElementById("progress").style.width = "0%";
             document.getElementById("progress").style.background = "red";
 
-            // Clear expenses from categories
             ["Food", "Rent", "Entertainment", "Transport", "Other"].forEach(category => {
                 document.getElementById(`expenses${category}`).innerHTML = "";
             });
 
-            // Ensure UI is refreshed
             loadExpenses();
             updateTotalExpenses();
             updateRemainingBudget();
             updateProgressBar();
             reloadGoals();
 
-            // Check savings goal based on remaining budget
             checkSavingsGoalAfterReset(previousGoal, remainingBudget);
         }
     } else {
         localStorage.setItem("lastResetDate", currentDate.toISOString());
     }
 }
+
 let goals = JSON.parse(localStorage.getItem("goals")) || [];
 
 function addGoal() {
